@@ -52,7 +52,7 @@ If you run this code you'll notice that the actual and predicted paths overlap p
 
 The tracking is prety poor as the GPS has an error standard deviation (STD) of **5 px**.
 
-Next let us estimate the robot's location purley from the control inputs. We know that the robot starts at *position* **`[200, 200]`** (px) and faces in *direction* **0** (rad). It moves at a constant *speed* of **2 px/step**. Given this starting configuration and a series of turn inputs `deltaDir` compute the robot's location using simple Euler integration. If you did it correctly, the actual and predicted path should overlap exactly (don't forget to uncheck "noise" again before trying out your solution). Compare with the provided solution:
+Next let us estimate the robot's location purley from the control inputs. We know that the robot starts at *position* **`[200, 200]`** (px) and faces in *direction* **0** (rad). It moves at a constant *speed* of **2 px/step**. Given this starting configuration and a series of turn inputs *`deltaDir`* compute the robot's location using simple Euler integration. If you did it correctly, the actual and predicted path should overlap exactly (don't forget to uncheck "noise" again before trying out your solution). Compare with the provided solution:
 
 <details>
 <sumary>Expand to reveal solution</summary>
@@ -70,13 +70,15 @@ this.y -= 2 * math.sin(this.dir);
 
 return [this.x, this.y];
 ```
+
+The minus in `-=` is needed because in our case the y-axis points down while in mathematics it points up.
 </details>
 
-The minus in `-=` is needed because in our case the y-axis points down while in mathematics it points up. Once again, turn "noise" back on and re-run the simulation, you should observe something like the following:
+Once again, turn "noise" back on and re-run the simulation, you should observe something like the following:
 
 ![screenshot of robot simulator](sim3.png)
 
-We observe that, at least in the beginning, our prediction follows the actual path much closer than when relying purely on the GPS signal. However, over time it grows very in-accurate due to drift from tyre slip. To be precise, each time the robot is requested to turn, it may slip, more so the sharper the turn. Each turn input is realized/executed with a error STD of **0.1 \* *deltaDir*** (rad). Next we want to combine these two estimation methods using the Kalman filter to obtain a new estimate that is more accurate than any individual one.
+We observe that, at least in the beginning, our prediction follows the actual path much closer than when relying purely on the GPS signal. However, over time it grows very in-accurate due to drift from tyre slip. To be precise, each time the robot is requested to turn, it may slip, more so the sharper the turn. Each turn input is realized/executed with a error STD of **0.1 \* |*deltaDir*|** (rad). Next we want to combine these two estimation methods using the Kalman filter to obtain a new estimate that is more accurate than any individual one.
 
 ## Kalman Filter (/w equations)
 The Kalman filter consists of 3 main components:
