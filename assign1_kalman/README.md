@@ -167,8 +167,8 @@ From its current location the robot travels exactly 2 px in any direction within
 Play around with the errors and see if you can obtain an even lower RMSE.
 </details>
 
-## <span style="color:red;">Kalman Filter (/w matrices)</span>
-You've effectively implemented the Kalman filter in the form of hand-written equations. Your homework is to translate this filter into its more popular "matrix form". Submit your solution (source code) to denniskb[at]csd.uoc.gr together with your student ID no. using the subject line "HY475 Assign 1".
+## Kalman Filter (/w matrices)
+You've effectively implemented the Kalman filter in the form of hand-written equations. Your homework is to translate this filter into its more popular "matrix form". Submit your solution (source code) to denniskb[at]csd.uoc.gr together with your student ID no. using the subject line "HY475 Assign 1". Ask (and answer) questions via the [issue tracker](https://github.com/denniskb/hy475/issues).
 
 ### Additional Reading
 - [In-depth visual explanation of the math behind the Kalman filter](https://www.bzarg.com/p/how-a-kalman-filter-works-in-pictures/)
