@@ -39,7 +39,7 @@ Finally, you can debug your code using the "Developer Tools" built into every mo
 By far the simplest thing we can do is simply return the GPS signal as our position. Try to do so right now and compare with the provided solution :
 
 <details>
-<sumary>Expand to reveal solution</summary>
+<summary>Expand to reveal solution</summary>
 
 ```javascript
 return gpsPos;
@@ -55,7 +55,7 @@ The tracking is prety poor as the GPS has an error standard deviation (STD) of *
 Next let us estimate the robot's location purley from the control inputs. We know that the robot starts at *position* **`[200, 200]`** (px) and faces in *direction* **0** (rad). It moves at a constant *speed* of **2 px/step**. Given this starting configuration and a series of turn inputs *`deltaDir`* compute the robot's location using simple Euler integration. If you did it correctly, the actual and predicted path should overlap exactly (don't forget to uncheck "noise" again before trying out your solution). Compare with the provided solution:
 
 <details>
-<sumary>Expand to reveal solution</summary>
+<summary>Expand to reveal solution</summary>
 
 ```javascript
 if (typeof this.x === 'undefined') {
@@ -129,7 +129,7 @@ If done correctly, you should observe something like the following when running 
 ![screenshot of robot simulator](sim4.png)
 
 <details>
-<sumary>Expand to reveal solution</summary>
+<summary>Expand to reveal solution</summary>
 
 ```javascript
 if (typeof this.x === 'undefined') {
