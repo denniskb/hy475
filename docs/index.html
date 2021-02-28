@@ -39,11 +39,11 @@
 				</table>
 				<canvas id="render" width="400" height="400"></canvas>
 				<table width="400"><tr><td width="50%"><button id="play" type="button">&#x25B6;</button></td>
-				<td><span id="rmse">RMSE: 0.00px</span></td></tr></table>
+				<td><span id="rmse">RMSE: 0.00 px</span></td></tr></table>
 			</td>
 			<td style="padding:10px;">
 				<code><strong><span style="color:#069;">function</span> predict(<em>deltaDir</em>, <em>gpsPos</em>) {</strong></code>
-				<textarea id="editor"></textarea>
+				<textarea id="editor">return [200, 200];</textarea>
 				<code><strong>}</strong></code>
 			</td>
 		</tr>
@@ -99,7 +99,7 @@
 				drawBot(x, y, dir+noise);
 
 				if (!(step % 10)) {
-					$('#rmse').html('RMSE: ' + Math.sqrt(math.mean(math.dotPow(math.subtract(hist, est), 2))).toFixed(2) + 'px');
+					$('#rmse').html('RMSE: ' + Math.sqrt(math.mean(math.dotPow(math.subtract(hist, est), 2))).toFixed(2) + ' px');
 				}
 				
 				if (on && step < 1000) {

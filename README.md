@@ -1,2 +1,2 @@
-# hy475
-Course Website for HY475 Robotic Navigation '21. CSD-UOC
+# Assignments for HY475 '21
+Assignments are based on our [interactive online robot simulator](denniskb.github.io/hy475). Each assignment is self-contained in its own folder. Feel free to raise (and answer) questions via the [issue tracker](https://github.com/denniskb/hy475/issues) and contribute to the [wiki](https://github.com/denniskb/hy475/wiki).
