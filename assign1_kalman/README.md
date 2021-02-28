@@ -33,6 +33,8 @@ this.counter++;
 
 You can also use any of the [math.js](https://mathjs.org/docs/index.html) library which is pre-loaded for you. `predict()` is invoked on every simulation step and is passed the (requested) relative change in direction in radians *`deltaDir`* (aka steering/control input) and the current GPS location *`gpsPos`*, a 2-element array (equivalent to a 2D vector). Given these data we have to *predict* the robots next location and return it as a 2D vector `[x, y]`. Let us approach this task incrementally with ever-increasing difficulty and fidelity to familiarize ourselves with the coding environment.
 
+Finally, you can debug your code using the "Developer Tools" built into every modern browser.
+
 ## Na&#x00EF;ve Approaches
 By far the simplest thing we can do is simply return the GPS signal as our position. Try to do so right now and compare with the provided solution :
 
