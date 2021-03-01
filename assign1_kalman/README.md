@@ -33,7 +33,7 @@ this.counter++;
 
 You can also use any of the [math.js](https://mathjs.org/docs/index.html) library which is pre-loaded for you. `predict()` is invoked on every simulation step and is passed the (requested) relative change in direction in radians *`deltaDir`* (aka steering/control input) and the current GPS location *`gpsPos`*, a 2-element array (equivalent to a 2D vector). Given these data we have to *predict* the robots next location and return it as a 2D vector `[x, y]`. Let us approach this task incrementally with ever-increasing difficulty and fidelity to familiarize ourselves with the coding environment.
 
-Finally, you can debug your code using the "Developer Tools" built into every modern browser.
+Finally, you can debug your code using the "Developer Tools" built into every modern browser. Use `console.log()` for debug prints.
 
 ## Na&#x00EF;ve Approaches
 By far the simplest thing we can do is simply return the GPS signal as our position. Try to do so right now and compare with the provided solution :
@@ -64,9 +64,9 @@ if (typeof this.x === 'undefined') {
     this.dir = 0;
 }
 
-this.dir += deltaDir;
 this.x += 2 * math.cos(this.dir);
 this.y -= 2 * math.sin(this.dir);
+this.dir += deltaDir;
 
 return [this.x, this.y];
 ```
@@ -98,9 +98,9 @@ if (typeof this.x === 'undefined') {
 }
 
 // Compute estimate and its associated error
-this.dir += deltaDir;
 var xEst = ...;
 var yEst = ...;
+this.dir += deltaDir;
 this.errEst += ...;
 
 // Compute observation and its associated error
@@ -140,9 +140,9 @@ if (typeof this.x === 'undefined') {
 }
 
 // Compute estimate and its associated error
-this.dir += deltaDir;
 var xEst = this.x + 2 * math.cos(this.dir);
 var yEst = this.y - 2 * math.sin(this.dir);
+this.dir += deltaDir;
 this.errEst += math.abs(deltaDir) * 0.2;
 
 // Compute observation and its associated error
@@ -170,7 +170,156 @@ Play around with the errors and see if you can obtain an even lower RMSE.
 </details>
 
 ## Kalman Filter (/w matrices)
-You've effectively implemented the Kalman filter in the form of hand-written equations. Your homework is to translate this filter into its more popular "matrix form". Submit your solution (source code) to denniskb[at]csd.uoc.gr together with your student ID no. using the subject line "HY475 Assign 1". Ask (and answer) questions via the [issue tracker](https://github.com/denniskb/hy475/issues).
+You've effectively implemented the Kalman filter in the form of hand-written equations. Your homework is to translate this filter into its more popular "matrix form" as depicted on [slide 17](https://www.csd.uoc.gr/~hy475/lectures/2.kalman.ppt). Copy-paste the subsequent template into the code editor and complete the **...**
+
+Submit your solution (source code) to denniskb[at]csd.uoc.gr together with your student ID no. using the subject line "HY475 Assign 1". Ask (and answer) questions via the [issue tracker](https://github.com/denniskb/hy475/issues).
+
+```javascript
+if (typeof this.mu === 'undefined') {
+    //state = [x, y, dir, w=1]
+    this.mu = [200, 200, 0, 1];
+    this.S = math.zeros(4, 4);
+    this.errEst = 0;
+}
+
+// PREDICTION
+
+// State transition matrix (advances dynamics)
+var A = [
+    [1, 0, 0, ...],
+    [0, 1, 0, ...],
+    [0, 0, 1, 0],
+    [0, 0, 0, 1]
+];
+var AT = math.transpose(A);
+
+// Control input
+var u = [...];
+// Control input->state influence matrix
+var B = [...];
+
+// Error in (motion) estimate
+this.errEst += ...;
+// Diagonal matrix with all entries = errEst^2
+var R = math.multiply(math.identity(4), this.errEst*this.errEst);
+
+// mu = A*mu + B*u
+this.mu = math.add(math.multiply(A, this.mu), math.multiply(B, u));
+// S = A*S*AT + R
+this.S = math.add(math.multiply(A, this.S, AT), R);
+
+// CORRECTION
+
+// Measurement/observation (gps)
+var z = [..., ..., this.mu[2], 1];
+// Measurement->state conversion matrix
+var C = math.identity(4);
+var CT = C;
+
+// Error in observation
+var errObs = ...;
+// Diagonal matrix with all entries = errObs^2
+var Q = math.multiply(math.identity(4), errObs*errObs);
+
+// K = S*CT*(C*S*CT + Q)^-1
+var K = math.multiply(
+    this.S, CT, math.inv(math.add(math.multiply(C, this.S, CT), Q))
+);
+
+// mu = mu + K*(z - C*mu)
+this.mu = math.add(
+    this.mu,
+    math.multiply(
+        K,
+        math.subtract(
+            z,
+            math.multiply(C, this.mu)))
+);
+
+// S = (I-K*C)*S
+this.S = math.multiply(
+    math.subtract(math.identity(4), math.multiply(K, C)), this.S
+);
+
+this.mu = this.mu._data;
+return [this.mu[0], this.mu[1]];
+```
+
+<details>
+<summary>Template solution</summary>
+
+```javascript
+if (typeof this.mu === 'undefined') {
+    //state = [x, y, dir, w=1]
+    this.mu = [200, 200, 0, 1];
+    this.S = math.zeros(4, 4);
+    this.errEst = 0;
+}
+
+// PREDICTION
+
+// State transition matrix (advances dynamics)
+var A = [
+    [1, 0, 0,  2*math.cos(this.mu[2])],
+    [0, 1, 0, -2*math.sin(this.mu[2])],
+    [0, 0, 1, 0],
+    [0, 0, 0, 1]
+];
+var AT = math.transpose(A);
+
+// Control input
+var u = [deltaDir];
+// Control input->state influence matrix
+var B = [[0], [0], [1], [0]];
+
+// Error in (motion) estimate
+this.errEst += math.abs(deltaDir) * 0.2;
+// Diagonal matrix with all entries = errEst^2
+var R = math.multiply(math.identity(4), this.errEst*this.errEst);
+
+// mu = A*mu + B*u
+this.mu = math.add(math.multiply(A, this.mu), math.multiply(B, u));
+// S = A*S*AT + R
+this.S = math.add(math.multiply(A, this.S, AT), R);
+
+// CORRECTION
+
+// Measurement/observation (gps)
+var z = [gpsPos[0], gpsPos[1], this.mu[2], 1];
+// Measurement->state conversion matrix
+var C = math.identity(4);
+var CT = C;
+
+// Error in observation
+var errObs = 5;
+// Diagonal matrix with all entries = errObs^2
+var Q = math.multiply(math.identity(4), errObs*errObs);
+
+// K = S*CT*(C*S*CT + Q)^-1
+var K = math.multiply(
+    this.S, CT, math.inv(math.add(math.multiply(C, this.S, CT), Q))
+);
+
+// mu = mu + K*(z - C*mu)
+this.mu = math.add(
+    this.mu,
+    math.multiply(
+        K,
+        math.subtract(
+            z,
+            math.multiply(C, this.mu)))
+);
+
+// S = (I-K*C)*S
+this.S = math.multiply(
+    math.subtract(math.identity(4), math.multiply(K, C)), this.S
+);
+
+this.mu = this.mu._data;
+return [this.mu[0], this.mu[1]];
+
+```
+</details>
 
 ### Additional Reading
 - [In-depth visual explanation of the math behind the Kalman filter](https://www.bzarg.com/p/how-a-kalman-filter-works-in-pictures/)

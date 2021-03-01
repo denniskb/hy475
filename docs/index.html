@@ -107,8 +107,8 @@
 					dir += noise;
 
 					var speed = 2;
-					x += speed * Math.cos(dir);
-					y -= speed * Math.sin(dir);
+					x += speed * Math.cos(dir-deltaDir);
+					y -= speed * Math.sin(dir-deltaDir);
 					hist.push([x, y]);
 
 					step++;
