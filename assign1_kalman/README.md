@@ -211,15 +211,15 @@ this.S = math.add(math.multiply(A, this.S, AT), R);
 // CORRECTION
 
 // Measurement/observation (gps)
-var z = [..., ..., this.mu[2], 1];
-// Measurement->state conversion matrix
-var C = math.identity(4);
-var CT = C;
+var z = [...];
+// State->measurement conversion matrix
+var C = [...];
+var CT = math.transpose(C);
 
 // Error in observation
 var errObs = ...;
 // Diagonal matrix with all entries = errObs^2
-var Q = math.multiply(math.identity(4), errObs*errObs);
+var Q = math.multiply(math.identity(2), errObs*errObs);
 
 // K = S*CT*(C*S*CT + Q)^-1
 var K = math.multiply(
@@ -244,7 +244,6 @@ this.S = math.multiply(
 this.mu = this.mu._data;
 return [this.mu[0], this.mu[1]];
 ```
-
 <details>
 <summary>Template solution</summary>
 
@@ -285,15 +284,18 @@ this.S = math.add(math.multiply(A, this.S, AT), R);
 // CORRECTION
 
 // Measurement/observation (gps)
-var z = [gpsPos[0], gpsPos[1], this.mu[2], 1];
-// Measurement->state conversion matrix
-var C = math.identity(4);
-var CT = C;
+var z = [gpsPos[0], gpsPos[1]];
+// State->measurement conversion matrix
+var C = [
+    [1, 0, 0, 0],
+    [0, 1, 0, 0]
+];
+var CT = math.transpose(C);
 
 // Error in observation
 var errObs = 5;
 // Diagonal matrix with all entries = errObs^2
-var Q = math.multiply(math.identity(4), errObs*errObs);
+var Q = math.multiply(math.identity(2), errObs*errObs);
 
 // K = S*CT*(C*S*CT + Q)^-1
 var K = math.multiply(
