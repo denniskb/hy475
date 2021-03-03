@@ -172,7 +172,7 @@ Play around with the errors and see if you can obtain an even lower RMSE.
 ## Kalman Filter (/w matrices)
 You've effectively implemented the Kalman filter in the form of hand-written equations. Your homework is to translate this filter into its more popular "matrix form" as depicted on [slide 17](https://www.csd.uoc.gr/~hy475/lectures/2.kalman.ppt). Copy-paste the subsequent template into the code editor and complete the **...**
 
-Submit your solution (source code) to denniskb[at]csd.uoc.gr together with your student ID no. using the subject line "HY475 Assign 1". Ask (and answer) questions via the [issue tracker](https://github.com/denniskb/hy475/issues).
+Submit your solution (source code) **by Mar 18** to denniskb[at]csd.uoc.gr together with your student ID no. using the subject line "HY475 Assign 1". Ask (and answer) questions via the [issue tracker](https://github.com/denniskb/hy475/issues).
 
 ```javascript
 if (typeof this.mu === 'undefined') {
