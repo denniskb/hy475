@@ -200,8 +200,13 @@ var B = [...];
 
 // Error in (motion) estimate
 this.errEst += ...;
-// Diagonal matrix with all entries = errEst^2
-var R = math.multiply(math.identity(4), this.errEst*this.errEst);
+// Estimate error matrix
+var R = [
+    [this.errEst*this.errEst, 0, 0, 0],
+    [0, this.errEst*this.errEst, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0]
+];
 
 // mu = A*mu + B*u
 this.mu = math.add(math.multiply(A, this.mu), math.multiply(B, u));
@@ -218,7 +223,7 @@ var CT = math.transpose(C);
 
 // Error in observation
 var errObs = ...;
-// Diagonal matrix with all entries = errObs^2
+// Measurement error matrix
 var Q = math.multiply(math.identity(2), errObs*errObs);
 
 // K = S*CT*(C*S*CT + Q)^-1
