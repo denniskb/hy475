@@ -1,0 +1,216 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>HY 475 Robot Simulator</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style>
+	* { box-sizing: border-box; margin: 0; padding: 0; }
+	body { font-family: Helvetica, 'Open Sans', sans-serif; }
+	#render { border: solid 1px black; border:none; }
+	#editor { min-width:400px; width: 100%; height: 70vh; overflow: auto; white-space: pre; resize: none;
+		padding:5px 1em; border: solid 1px black; }
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="../math.js"></script>
+<script src="../js.cookie-2.2.1.min.js"></script>
+<script>
+	math.import({
+		normrnd: function (m = 0, s = 1) {
+			var U1 = math.random(1e-6, 1-1e-6);
+			var U2 = math.random(1e-6, 1-1e-6);
+			return Math.sqrt(-2*Math.log(U1)) * Math.cos(2*Math.PI*U2) * s + m;
+		}
+	});
+</script>
+</head>
+<body>
+	<table width="100%" border="0">
+		<tr>
+			<td align="center" style="padding:10px;" width="50%">
+				<input id="noise" type="checkbox"> noise<br/>
+				<canvas id="render" width="440" height="440"></canvas>
+				<table width="400">
+				<tr><td colspan="2" align="center"><span style="color:#090; font-weight: bold;">&mdash;</span> ground truth<br/><span style="color:#e60; font-weight: bold;">&mdash;</span> estimate</td></tr>
+				<tr><td width="50%"><button id="refresh" type="button" style="font-size: 24px;">&#x21bb;</button></td>
+				<td><span id="mse">MSE: 0.00 m</span></td></tr>
+				</table>
+			</td>
+			<td style="padding:10px;">
+				<code><pre><strong><span style="color:#393; font-weight: normal;">// a  - (noisy) rocket acceleration (m/s<sup>2</sup>)
+// z  - (noisy) camera angle "alpha" (rad)
+// d  - distance camera<->rocket (200m)
+// dt - time step (s)</span>
+<span style="color:#069;">function</span> predict(<em>a</em>, <em>z</em>, <em>d</em>, <em>dt</em>) {</strong></pre></code>
+<textarea id="editor">if (typeof this.s === 'undefined') {
+  // state (mu):
+  this.s = 0; // altitude (m)
+  this.v = 0; // velocity (m/s)
+
+  this.S = math.zeros(2, 2);
+}
+
+// PREDICTION
+
+// TODO: Use Taylor expansion for higher accuracy:
+// g(mu)
+function g1(s, v) { return s + v * dt; }
+function g2(s, v) { return v + a * dt; }
+
+// mu = g(mu)
+this.s = g1(this.s, this.v);
+this.v = g2(this.s, this.v);
+
+/* TODO: Uncomment and implement EKF
+var G = [
+  [deriv. of g1 wrt. s, deriv. of g2 wrt. v],
+  [deriv. of g2 wrt. s, deriv. of g2 wrt. v]
+];
+var GT = math.transpose(G);
+
+var R = math.dotPow([
+  [est. err. in s, 0],
+  [0, est. err. in v]
+], 2);
+
+// S = G*S*GT + R
+this.S = math.add(math.multiply(G, this.S, GT), R);
+
+// CORRECTION
+
+// h(mu)
+function h(s, v) { ... }
+
+var H = [
+  deriv. of h wrt. s, deriv. of h wrt. v
+];
+var HT = math.transpose(H);
+
+var Q = math.pow(obs. err. in z, 2);
+
+// K = S*HT*(H*S*HT + Q)^-1
+var K = math.multiply(
+  this.S, HT, math.inv(math.add(math.multiply(H, this.S, HT), Q))
+);
+
+// mu = mu + K*(z - h(mu))
+[this.s, this.v] = math.add(
+  [this.s, this.v],
+  math.multiply(K, z - h(this.s, this.v))
+)._data;
+
+// S = (I-K*H)*S
+this.S = math.multiply(
+  math.subtract(math.identity(2), math.multiply(K, H)), this.S
+);
+*/
+
+return this.s;</textarea>
+				<code><strong>}</strong></code>
+			</td>
+		</tr>
+	</table>
+
+	<script>
+		function context() { return $('#render')[0].getContext('2d'); }
+		function clear() { 
+			var ctx = context();
+			ctx.clearRect(0, 0, $('#render').width(), $('#render').height());
+
+			ctx.beginPath();
+			ctx.strokeStyle = 'black';
+			ctx.lineWidth = 1;
+
+			ctx.moveTo(40,0);
+			ctx.lineTo(40, 400);
+			ctx.lineTo(440, 400);
+
+			ctx.font = '14px monospace';
+			ctx.textAlign = 'end';
+			for (var y = 50; y <= 400; y += 50) {
+				ctx.fillText(2000-y*5, 35, y);
+			}
+			ctx.textAlign = 'middle';
+			for (var x = 40; x <= 440; x += 40) {
+				ctx.fillText((x-40)/40*3, x, 420);
+			}
+
+			ctx.stroke();
+		}
+
+		function plot(x, y, color) {
+			if (typeof x._data !== 'undefined') x = x._data;
+			if (typeof y._data !== 'undefined') y = y._data;
+
+			function $x(x) { return 40 + 13*x; }
+			function $y(y) { return 400 - y/5; }
+
+			var ctx = context();
+			ctx.beginPath();
+			ctx.strokeStyle = color;
+			ctx.lineWidth = 1.2;
+			ctx.moveTo($x(x[0]), $y(y[0]));
+			for (var i = 1; i < x.length; i++) ctx.lineTo($x(x[i]), $y(y[i]));
+			ctx.stroke();
+		}
+
+		function redraw() {
+			clear();
+
+			// ground truth
+			var closed = math.multiply(0.5 * a, math.dotPow(t, 2));
+			plot(t, closed, '#090');
+
+			// estimate
+			eval('function filter(){ this.pred = function(a, z, d, dt) {'+ $('#editor').val() +'}; }');
+			var f = new filter();
+			var est = [0];
+			t._data.forEach(function(elapsed, i) {
+				function get(id, i) {
+					return $(id).val().split(',')[i];
+				}
+
+				var alpha = $('#noise')[0].checked ? get('#alphas', i) : math.atan(0.5 * a * math.pow(elapsed + dt, 2) / 200);
+				var accel = $('#noise')[0].checked ? get('#as', i) : a;
+
+				est.push(f.pred(
+					accel,
+					alpha,
+					200,
+					dt)
+				);
+			});
+			est.pop();
+			plot(t, est, '#e60');
+
+			var mse = math.mean(math.dotPow(math.subtract(closed, est), 2)).toFixed(0);
+			$('#mse').html('MSE: ' + mse + ' m');
+		}
+
+		var a = 0.4 * 9.8;
+		var dt = 2;
+		var t = math.range(0, 31, dt);
+
+		$(document).ready(function() {
+			if (typeof Cookies.get('editorState', {path: '/assign2'}) !== 'undefined'){
+				$('#editor').val(Cookies.get('editorState', {path: '/assign2'}));
+			}
+
+			redraw();
+
+			$('#refresh').on('click', function() {
+				redraw();
+			});
+			$('#noise').on('change', function() {
+				redraw();
+			});
+
+			$('#editor').on('change keyup paste', function() {
+				Cookies.set('editorState', $(this).val(), {expires: 30, path: '/assign2'});
+			});
+		});
+	</script>
+
+	<input id="alphas" type="hidden" value="0.040,0.156,0.329,0.533,0.769,0.952,1.085,1.189,1.270,1.317,1.343,1.410,1.434,1.439,1.460,1.459">
+	<input id="as" type="hidden" value="4.11,4.76,3.81,4.08,2.23,2.06,4.63,3.64,3.88,1.56,4.14,5.20,3.54,3.64,3.84,2.46">
+</body>
+</html>
