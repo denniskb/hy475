@@ -191,8 +191,8 @@ return this.s;</textarea>
 		var t = math.range(0, 31, dt);
 
 		$(document).ready(function() {
-			if (typeof Cookies.get('editorState', {path: '/assign2'}) !== 'undefined'){
-				$('#editor').val(Cookies.get('editorState', {path: '/assign2'}));
+			if (typeof Cookies.get('editorState', {path: '/assign2/'}) !== 'undefined'){
+				$('#editor').val(Cookies.get('editorState', {path: '/assign2/'}));
 			}
 
 			redraw();
@@ -205,7 +205,7 @@ return this.s;</textarea>
 			});
 
 			$('#editor').on('change keyup paste', function() {
-				Cookies.set('editorState', $(this).val(), {expires: 30, path: '/assign2'});
+				Cookies.set('editorState', $(this).val(), {expires: 30, path: '/assign2/'});
 			});
 		});
 	</script>
