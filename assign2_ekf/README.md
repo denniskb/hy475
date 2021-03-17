@@ -80,7 +80,7 @@ The Taylor expansion allows us to estimate the dynamics of a (non-linear) system
 ## EKF
 In this assignment we want to employ the EKF to track a launching rocket's altitude from camera footage.
 
-![motorzied rocket tracker](https://www.startpage.com/av/proxy-image?piurl=https%3A%2F%2Fencrypted-tbn0.gstatic.com%2Fimages%3Fq%3Dtbn%3AANd9GcStm5Qud38-Ed7H0nwVIDcWEmc-tyS8FjRNH3e8wibsWD_zKvHm%26s&sp=1615929950T0ee4650cd59c8bc5d551665d0a47a22e77350e0af0df26950b07b765d456a58a)
+![motorzied rocket tracker](https://i.stack.imgur.com/nieOY.jpg)
 
 We know the rocket's average acceleration (within some error) as well as the distance of the camera system from the launch pad and the camera's angle (within some error):
 
