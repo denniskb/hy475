@@ -164,7 +164,7 @@ return this.s;
 ```
 </details>
 
-- The main (and only) difference compared to your lecture slides is that, instead of storing our state in a vector `mu`, we reference its components `s` and `v` directly, which leads to simpler code. Similarly, instead of storing a vector of state transition functions `g`, we reference the individual functions `g1` and `g2` directly.
+- The main (and only) difference compared to your lecture slides is that, instead of storing our state in a vector `mu`, we reference its components `s` and `v` directly, which leads to simpler code. For the same reason, instead of having a single function `g` which operates on the entire state (accepts and returns vectors), we use the individual functions `g1` and `g2` which operate on the state's respective components.
 - You'll need to complete all **TODO**s and **...**, in order:
     1. Refactor the state transition function `g1` to use Taylor expansion in place of Euler integration (making it non-linear), similarly to the dragster example. If you do this correctly, your MSE should drop to 0 (with noise turned off).
     2. Uncomment the EKF-part, don't forget to remove the `*/` in the second-to-last line as well.
