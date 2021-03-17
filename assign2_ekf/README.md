@@ -3,7 +3,7 @@
 We lied to you in the [previous assignment](https://github.com/denniskb/hy475/tree/master/assign1_kalman). We used the Kalman filter for an obviously *non*-linear problem: a turning robot. The reason it still worked is two-fold:
 
 - The robot behaved "linearly enough": It was driving at constant speed and didn't make any abrupt directional changes. The timestep was relatively small compared to its speed (30 ms vs 60 px/s). Thus our assumption of piecewise linear motion (move, turn, move, turn, ...) still allowed us to obtain an accurate estimate of the robot's location.
-- The simulator itself was flawed relying on simple Euler integration to simulate the robot's ground truth path rather than using closed form/analytical solutions to its dynamics. Naturally, if your Kalman filter replicates the same equations as the simulator uses, you can obtain perfect tracking (in the absence of noise).
+- The simulator itself was flawed relying on simple Euler integration to simulate the robot's ground truth path rather than using closed form/analytical solutions for its dynamics. Naturally, if your Kalman filter replicates the same equations as the simulator uses, you can obtain perfect tracking (in the absence of noise).
 
 In this assignment we want to implement the EKF for a (correctly modelled) non-linear problem. Knowing its closed form/analytical solution we will be able to verify the EKF's superior performance. While the EKF in general does not guarantee optimilatiy anymore (in comparison, the standard Kalman filter guarantees to obtain the minimum possible MSE for *linear* problems), the mere fact that it more accurately models non-linear dynamics results in much better performance.
 
@@ -118,7 +118,7 @@ this.v = g2(this.s, this.v);
 
 /* TODO: Uncomment and implement EKF
 var G = [
-  [deriv. of g1 wrt. s, deriv. of g2 wrt. v],
+  [deriv. of g1 wrt. s, deriv. of g1 wrt. v],
   [deriv. of g2 wrt. s, deriv. of g2 wrt. v]
 ];
 var GT = math.transpose(G);
@@ -173,7 +173,7 @@ return this.s;
     5. Implement the (non-linear) function `h` whose job it is to relate our state `mu=[s, v]` to the measurement `z` (the camera angle, called "alpha" in the diagram above).
     6. Fill in the Jacobian matrix `H`. You will need to use the [chain rule](https://en.wikipedia.org/wiki/Chain_rule) for this.
     7. Calculate the observation error and store it in `Q`. The camera reports its angle with an error STD of 0.02 rad.
-- In addition your lecture material, the built-in debugger, the `console.log()` function and ofc. the issue tracker, you can use the following sanity checks to judge whether you're on the right track:
+- In addition to your lecture material, the built-in debugger, the `console.log()` function and ofc. the issue tracker, you can use the following sanity checks to judge whether you're on the right track:
     - With the noise turned off, your EKF implementation should still produce a MSE of ~0.
     - *Turn on the noise*.
     - Set `Q` to 0, so that the EKF bases its answer on the measurement `z` alone. You should obtain a MSE of ~2000 and your plot should look similar to fig. **X**.
