@@ -90,7 +90,7 @@ Head over to our [interactive plotting tool](https://denniskb.github.io/hy475/as
 
 ![plot euler](plot3.png)
 
-The effect is even more amplified with noise turned on. This is because in its current form the filter uses Euler integration in order to advance the rocket's dynamics. Your homework is to rewrite the dynamics equations to use Taylor expansion and complete the EKF implementation. The template code is designed to follow [slide 31](https://www.csd.uoc.gr/~hy475/lectures/2.kalman.ppt) from your lectures as close as possible which it references heavily in comments.
+The effect is even more amplified with noise turned on. This is because in its current form the filter uses Euler integration in order to advance the rocket's dynamics. Your homework is to rewrite the dynamics equations to use Taylor expansion and complete the EKF implementation. Please submit your [base64](https://www.utilities-online.info/base64)-encoded code together with your name and student ID no. to denniskb(at)csd.uoc.gr **by 1 Apr '21**.
 
 ### Tips (read carefully)
 <details>
@@ -164,7 +164,7 @@ return this.s;
 ```
 </details>
 
-- The main (and only) difference compared to your lecture slides is that, instead of storing our state in a vector `mu`, we reference its components `s` and `v` directly, which leads to simpler code. For the same reason, instead of having a single function `g` which operates on the entire state (accepts and returns vectors), we use the individual functions `g1` and `g2` which operate on the state's respective components.
+- The template code is designed to follow [slide 31](https://www.csd.uoc.gr/~hy475/lectures/2.kalman.ppt) from your lectures as closely as possible which it references heavily in comments. The main (and only) difference compared to your lecture slides is that, instead of storing our state in a vector `mu`, we reference its components `s` and `v` directly, which leads to simpler code. For the same reason, instead of having a single function `g` which operates on the entire state (accepts and returns vectors), we use the individual functions `g1` and `g2` which operate on the state's respective components.
 - You'll need to complete all **TODO**s and **...**, in order:
     1. Refactor the state transition function `g1` to use Taylor expansion in place of Euler integration (making it non-linear), similarly to the dragster example. If you do this correctly, your MSE should drop to 0 (with noise turned off).
     2. Uncomment the EKF-part, don't forget to remove the `*/` in the second-to-last line as well.
