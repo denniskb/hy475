@@ -11,8 +11,8 @@
 		padding:5px 1em; border: solid 1px black; }
 </style>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="math.js"></script>
-<script src="js.cookie-2.2.1.min.js"></script>
+<script src="../math.js"></script>
+<script src="../js.cookie-2.2.1.min.js"></script>
 <script>
 	math.import({
 		normrnd: function (m = 0, s = 1) {
@@ -131,8 +131,8 @@
 
 		 $(document).ready(function(){
 			reset();
-			if (typeof Cookies.get('editorState') !== 'undefined'){
-				$('#editor').val(Cookies.get('editorState'));
+			if (typeof Cookies.get('editorState', {path: '/hy475/assign1/'}) !== 'undefined'){
+				$('#editor').val(Cookies.get('editorState', {path: '/hy475/assign1/'}));
 			}
 
 			$('#gpsNoise').on('input', function() {
@@ -168,7 +168,7 @@
 			});
 
 			$('#editor').on('change keyup paste', function(){
-				Cookies.set('editorState', $(this).val(), {expires: 30});
+				Cookies.set('editorState', $(this).val(), {expires: 30, path: '/hy475/assign1/'});
 			});
 		});
 	</script>

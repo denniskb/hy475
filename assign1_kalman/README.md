@@ -14,7 +14,7 @@ Our robot has 2 sources of positional data:
 In an ideal world, either of these sources would be sufficient to pin-point our robot's location. In practice the wheels are subject to slip which may cause the robot to believe it's turned a different amount than it actually has; this error accumulates over time (aka "drift"). While GPS does not suffer from drift, it is simply not accurate enough (its resolution isn't high enough) on its own for the tasks we want our robot to do. Thus we must complement it with extra information.
 
 ## Simulator
-Head over to our [interactive robot simulator](https://denniskb.github.io/hy475). Depicted is a yellow robot in the top-down view. The black radial line shows its orientation. Press &#x25B6;. Once started the robot drives at a constant speed of 60 px/s (or 2 px/timestep, there is no (de-) acceleration) following a pre-recorded sequence of (relative) steering inputs (given in radians) for 30 s, or until stopped via &#x23F9;. The green path depicts where the robot has actually been:
+Head over to our [interactive robot simulator](https://denniskb.github.io/hy475/assign1). Depicted is a yellow robot in the top-down view. The black radial line shows its orientation. Press &#x25B6;. Once started the robot drives at a constant speed of 60 px/s (or 2 px/timestep, there is no (de-) acceleration) following a pre-recorded sequence of (relative) steering inputs (given in radians) for 30 s, or until stopped via &#x23F9;. The green path depicts where the robot has actually been:
 
 ![screenshot of robot simulator](sim1.png)
 
