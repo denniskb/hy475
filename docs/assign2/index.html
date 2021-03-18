@@ -106,6 +106,8 @@ this.S = math.multiply(
 
 return this.s;</textarea>
 				<code><strong>}</strong></code>
+				<button id="tob64">ascii &rarr; base64</button>
+				<button id="toascii">base64 &rarr; ascii</button>
 			</td>
 		</tr>
 	</table>
@@ -206,6 +208,12 @@ return this.s;</textarea>
 
 			$('#editor').on('change keyup paste', function() {
 				Cookies.set('editorState', $(this).val(), {expires: 30, path: '/hy475/assign2/'});
+			});
+			$('#tob64').on('click', function(){
+				$('#editor').val(btoa($('#editor').val()));
+			});
+			$('#toascii').on('click', function(){
+				$('#editor').val(atob($('#editor').val()));
 			});
 		});
 	</script>
