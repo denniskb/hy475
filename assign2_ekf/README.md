@@ -164,6 +164,8 @@ return this.s;
 ```
 </details>
 
+- <a name="updt"></a> *Please [delete your cookies](https://lmgtfy.app/?q=delete+cookies+firefox) for domain `bautembach.de` before going about the homework*.
+- *You can solve the assignment using Matlab/Octave if you prefer, by completing the `assign2.m` file in this folder and emailing it to me. Please note: You cannot flip the noise on/off and the obtained MSE varies slightly due to different math engines between JS and Matlab, meaning the figures and tips aren't as helpful, so I recommend against it.*
 - The template code is designed to follow [slide 31](https://www.csd.uoc.gr/~hy475/lectures/2.kalman.ppt) from your lectures as closely as possible which it references heavily in comments. The main (and only) difference compared to your lecture slides is that, instead of storing our state in a vector `mu`, we reference its components `s` and `v` directly, which leads to simpler code. For the same reason, instead of having a single function `g` which operates on the entire state (accepts and returns vectors), we use the individual functions `g1` and `g2` which operate on the state's respective components.
 - You'll need to complete all **TODO**s and **...**, in order:
     1. Refactor the state transition function `g1` to use Taylor expansion in place of Euler integration (making it non-linear), similarly to the dragster example. If you do this correctly, your MSE should drop to 0 (with noise turned off).
