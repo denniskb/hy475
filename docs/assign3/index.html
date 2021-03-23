@@ -1,0 +1,160 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>HY 475 Robot Simulator</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style>
+	* { box-sizing: border-box; margin: 0; padding: 0; }
+	body { font-family: Helvetica, 'Open Sans', sans-serif; }
+	#render { border: solid 1px black; width: 500px; height: 500px; background-image: url('terrain.jpg'); }
+	#editor { min-width:400px; width: 100%; height: 60vh; overflow: auto; white-space: pre; resize: none;
+		padding:5px 1em; border: solid 1px black; }
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="../math.js"></script>
+<script src="../js.cookie-2.2.1.min.js"></script>
+<script>
+	math.import({
+		normrnd: function (m = 0, s = 1) {
+			var U1 = math.random(0.001, 0.999);
+			var U2 = math.random(0.001, 0.999);
+			return Math.sqrt(-2*Math.log(U1)) * Math.cos(2*Math.PI*U2) * s + m;
+		}
+	});
+
+	Array.prototype.lowerBound = function(x) {
+		var arr = this;
+		var step = function(l, r) {
+			if (l >= r) return l;
+			var m = Math.floor((l + r) / 2);
+			if (arr[m] >= x) return step(l, m);
+			else return step(m+1, r);
+		};
+
+		return step(0, this.length-1);
+	};
+</script>
+<script src="depth.txt"></script>
+</head>
+<body>
+	<img id="plane" src="plane.png" style="display: none;">
+	<table width="100%" border="0">
+		<tr>
+			<td align="center" style="padding:10px;" width="50%">
+				<input id="slomo" type="checkbox" checked> Slow Motion<br>&nbsp;<br>
+				<canvas id="render" width="500" height="500"></canvas><br>&nbsp;<br>
+				<button id="play" type="button">&#x25B6;</button>
+			</td>
+			<td style="padding:10px;">
+				<code><pre><strong>
+<span style="color:#393; font-weight: normal;">// terrain   - terrain height above sea level (m)
+               use 'terrain.at(x, y)'
+// altSea    - (noisy) altitude above sea level (m)
+// altGround - (noisy) altitude above ground (m)
+// dx        - plane's x movement (px)
+// dy        - plane's y movement (px)</span>
+<span style="color:#069;">function</span> filter(<em>terrain</em>, <em>altSea</em>, <em>altGround</em>, <em>dx</em>, <em>dy</em>) {</strong></code>
+<textarea id="editor"></textarea>
+<code><strong>}</strong></pre></code>
+			</td>
+		</tr>
+	</table>
+
+	<script>
+		function context() { return $('#render')[0].getContext('2d'); }
+		function clear() { context().clearRect(0, 0, $('#render').width()+2, $('#render').height()+2); }
+
+		function Robot() {
+			var x = 200 + Math.random() * 100;
+			var y = 200 + Math.random() * 100;
+			var lastX = x;
+			var lastY = y;
+			var dir = Math.random() * 2 * Math.PI;
+			var ROT = 1;
+			var speed = 50; // px/s
+			var particles = [];
+			var step = 0;
+
+			var draw = function() {
+				var ctx = context();
+				ctx.save();
+				ctx.translate(x, y);
+				ctx.rotate(dir);
+				ctx.drawImage($('#plane')[0], -32, -32);
+				ctx.restore();
+			}
+
+			this.sim = function(filter) {
+				clear();
+				draw();
+
+				if (on) {
+					var dt = 1/30;
+					
+					dir += dt * ROT;
+					if (Math.random() < dt/3) ROT = -ROT;
+					
+					x += speed * dt * math.cos(dir);
+					y += speed * dt * math.sin(dir);
+
+					if (x < 0) x += 500; if (x >= 500) x -= 500;
+					if (y < 0) y += 500; if (y >= 500) y -= 500;
+
+					if (step % 3 == 0) {
+						particles = filter.pred(depth, 500, 500-depth.at(x, y), x-lastX, y-lastY);
+						lastX = x;
+						lastY = y;
+					}
+
+					var ctx = context();
+					ctx.fillStyle = 'rgba(255, 255, 0, 0.5)';
+					particles.forEach(function(x) {
+						ctx.beginPath();
+						ctx.arc(x[0], x[1], 5, 0, 2*Math.PI);
+						ctx.fill();
+					});
+
+					step++;
+					tid = setTimeout(function() { bot.sim(filter); }, $('#slomo')[0].checked * 30);
+				}
+			};
+		}
+
+		var on = false;
+		var bot = {};
+		var tid = -1;
+		function reset() {
+			on = false;
+			bot = new Robot();
+			bot.sim();
+		}
+
+		 $(document).ready(function(){
+			depth.at = function(x, y){ return this[Math.floor(y)][Math.floor(x)]; };
+
+			reset();
+			if (typeof Cookies.get('editorState', {path: '/hy475/assign3/'}) !== 'undefined'){
+				$('#editor').val(Cookies.get('editorState', {path: '/hy475/assign3/'}));
+			}
+
+			$('#play').click(function(e){
+				on = !on;
+
+				if (on) {
+					$(this).html('&#x23F9;');
+					eval('function filter(){ this.pred = function(terrain, altSea, altGround, dx, dy) {'+ $('#editor').val() +'}; }');
+					bot.sim(new filter());
+				} else {
+					window.clearTimeout(tid);
+					$(this).html('&#x25B6;');
+					reset();
+				}
+			});
+
+			$('#editor').on('change keyup paste', function(){
+				Cookies.set('editorState', $(this).val(), {expires: 30, path: '/hy475/assign3/'});
+			});
+		});
+	</script>
+</body>
+</html>
