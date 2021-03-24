@@ -1,5 +1,5 @@
 # Assignment 3: Particle Filter
-[![particle filter](particle0.jpg)](https://www.youtube.com/watch?v=WtmwQCXoTM8)
+[![particle filter](particle0.jpg)](https://www.youtube.com/watch?v=WtmwQCXoTM8&list=PLfuJEfUHg4HErT4VNOpnAJxuSTGksRAKz&index=4)
 
 (Click on the image to view the video on youtube.)
 
@@ -10,7 +10,7 @@ We will implement the filter in its entirety step by step, coding each phase of 
 ## Introduction
 ![simulator](sim.jpg)
 
-Navigate to our [interactive plane simulator](https://denniskb.github.io/assign3/) which is pre-filled with the following template:
+Navigate to our [interactive plane simulator](https://denniskb.github.io/hy475/assign3/) which is pre-filled with the following template:
 
 ```javascript
 // CONSTANTS
@@ -47,7 +47,7 @@ this.particles.forEach(function(p) {
   total += w;
 });
 
-// TODO 3.2: Normalize each particle's weight so they sum to 1.
+// TODO 3.2: Normalize particles' weights so they sum to 1.
 ----------------------------------------*/
 
 // RESAMPLING
@@ -96,7 +96,7 @@ Navigate to "TODO 1" and fill the `this.particles` array/vector with `N=100` ran
 If done correctly, you should see something similar to the image above: The plane flying around a sea of randomly placed, *static* (we aren't updating them yet) particles. If you don't, check the console for potential errors.
 
 ## Step 2: Update
-[![particle filter](particle2.jpg)](https://www.youtube.com/watch?v=RjPapqWTSkg)
+[![particle filter](particle2.jpg)](https://www.youtube.com/watch?v=RjPapqWTSkg&list=PLfuJEfUHg4HErT4VNOpnAJxuSTGksRAKz&index=1)
 
 Next comes the update step in which we need to move the particles in unison with the plane. Bear with me for now and just follow the instructions, once we get to step 3 (weight calc.) it will all start making sense and coming together ;)
 
@@ -104,7 +104,7 @@ Navigate to section "UPDATE" and uncomment it. Next navigate to "TODO 2" and upd
 
 Next we need to add random noise to our particles' motions. This is crucial for the particle filter to work properly. Why will become apparent once we implement step 4 (resampling). Uncomment the constant `NOISE` and set it to a sensible value. The plane is moving at a constant speed of 50 px/s. Our particle filter is invoked 10x per second, meaning the plane moves ~5 px between invocations. The noise's purpose is to *diversify* our particles helping them avoid getting stuck in local maxima. It shouldn't be so large as to completely dominate their motion (they should still overall follow the plane), it should just make them 'wiggle' on their paths, as can be seen in the below video:
 
-[![particle filter](particle3.jpg)](https://www.youtube.com/watch?v=yA2Oy2RilQA)
+[![particle filter](particle3.jpg)](https://www.youtube.com/watch?v=yA2Oy2RilQA&list=PLfuJEfUHg4HErT4VNOpnAJxuSTGksRAKz&index=2)
 
 Once again, the  [`math.random(min, max)`](https://mathjs.org/docs/reference/functions/random.html) function will come in handy. Note that `min` can be negative ;)
 
@@ -115,7 +115,7 @@ The only thing we can base our weights on is the altitude above ground. For the 
 
 Navigate to section "WEIGHT CALCULATION & NORMALIZATION" and uncomment it. Navigate to "TODO 3.1" and calculate a suitable weight for each particle, store it in the variable `w`. Remember that variables in JavaScript need to be *declared* with `var` as in `var w = ...`. Feel free to use multiple lines and additional helper variables that hold intermediate results in order to produce clean code. Navigate to "TODO 3.2" and *normalize* all particles' weights so they sum to 1. The `total` weight which we calculated in 3.1 should come in handy for this.
 
-[![particle filter](particle4.jpg)](https://www.youtube.com/watch?v=UbFmKqj1lps)
+[![particle filter](particle4.jpg)](https://www.youtube.com/watch?v=UbFmKqj1lps&list=PLfuJEfUHg4HErT4VNOpnAJxuSTGksRAKz&index=3)
 
 If done correctly you should see something similar to the above: Particles now have different sizes based on their weights (the weight contorls their diameter (as opposed to their area) in order to exaggerate the effect). Look at the particles in white circles. The plane is flying over medium-height, green terrain. So naturally all particles placed over green terrain will have a similar altitude above ground and should therefore have a high weight. Particles with a very different altitude above ground on the other hand (such as the ones above sea or mountains) have a lower weight and are thus smaller. However, they're still visible, they didn't become single-pixel dots--that's what I meant by "non-aggressive error metric". Use the "pause" button in the simulator to halt the simulation and inspect your particles' sizes. Click on the image above to play the video and see the particles change their size as they move over (dis-)similar terrain. Compare with your simulation.
 
@@ -139,7 +139,7 @@ _____________________________
 -----------------------------
 ```
 
-*Figure 1: (top) Uniform sampling: We create equal-sized buckets. We then generate (unfirom) random numbers and observe which bucket they fall into (x). Since all buckets have the same size, each bucket has the same chance of getting picked. As is the nature with random numbers, some buckets get picked multiple times, some don't at all. This is equivalent to simply generating random array indices and returning the corresponding elements. (bottom) The buckets are now scaled proportionally to the particles' weights. Still generating uniform random numbers, bigger buckets now have a higher chance of getting hit. This requires additional coding.*
+*Figure 1: (top) Uniform sampling: We create equal-sized buckets. We then generate (unfirom) random numbers (x) and observe which bucket they fall into. Since all buckets have the same size, each bucket has the same chance of getting picked. As is the nature with random numbers, some buckets get picked multiple times, some don't at all. This is equivalent to simply generating random array indices and returning the corresponding elements. (bottom) The buckets are now scaled proportionally to the particles' weights. Still generating uniform random numbers, bigger buckets now have a higher chance of getting hit. This requires additional coding.*
 
 In contrast to [importance sampling](http://www.cs.cmu.edu/~16831-f14/notes/F14/16831_lecture04_josephba.pdf) (IS) (page 1) which then generates `N` random numbers and selects the particles in the corresponding buckets, low-variance sampling only generates a single random number `r` in the interval `[0, 1)` and then picks `N` particles from buckets `r + i * 1/N` for `i = 0..N-1`, wrapping around the interval.
 
