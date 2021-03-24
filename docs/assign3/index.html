@@ -7,7 +7,7 @@
 	* { box-sizing: border-box; margin: 0; padding: 0; }
 	body { font-family: Helvetica, 'Open Sans', sans-serif; }
 	#render { border: solid 1px black; width: 500px; height: 500px; background-image: url('terrain.jpg'); }
-	#editor { min-width:400px; width: 100%; height: 60vh; overflow: auto; white-space: pre; resize: none;
+	#editor { min-width:400px; width: 100%; height: 65vh; overflow: auto; white-space: pre; resize: none;
 		padding:5px 1em; border: solid 1px black; }
 </style>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -22,6 +22,24 @@
 		}
 	});
 
+	Array.prototype.at = function(x, y) {
+		var i = Math.floor(y);
+		if (i < 0 || i >= this.length) {
+			console.log('array index \'y\' out of bounds');
+			return undefined;
+		}
+		var sub = this[i];
+		if (!Array.isArray(sub)) {
+			console.log('not a 2D array');
+			return undefined;
+		}
+		i = Math.floor(x);
+		if (i < 0 || i >= sub.length) {
+			console.log('array index \'x\' out of bounds');
+			return undefined;
+		}
+		return sub[i];
+	}
 	Array.prototype.lowerBound = function(x) {
 		var arr = this;
 		var step = function(l, r) {
@@ -33,29 +51,97 @@
 
 		return step(0, this.length-1);
 	};
+	Array.prototype.clone = function() {
+		var result = [];
+		this.forEach(function(x){ result.push(x); });
+		return result;
+	}
 </script>
 <script src="depth.txt"></script>
 </head>
 <body>
-	<img id="plane" src="plane.png" style="display: none;">
+	<img id="plane" src="plane.png" style="visibility: hidden;">
 	<table width="100%" border="0">
 		<tr>
 			<td align="center" style="padding:10px;" width="50%">
 				<input id="slomo" type="checkbox" checked> Slow Motion<br>&nbsp;<br>
 				<canvas id="render" width="500" height="500"></canvas><br>&nbsp;<br>
-				<button id="play" type="button">&#x25B6;</button>
+				<button id="play" type="button">&#x25B6;</button>&nbsp;
+				<button id="stop" type="button">&#x23F9;</button>
 			</td>
 			<td style="padding:10px;">
 				<code><pre><strong>
 <span style="color:#393; font-weight: normal;">// terrain   - terrain height above sea level (m)
-               use 'terrain.at(x, y)'
-// altSea    - (noisy) altitude above sea level (m)
-// altGround - (noisy) altitude above ground (m)
+// altSea    - altitude above sea level (m)
+// altGround - altitude above ground (m)
 // dx        - plane's x movement (px)
 // dy        - plane's y movement (px)</span>
-<span style="color:#069;">function</span> filter(<em>terrain</em>, <em>altSea</em>, <em>altGround</em>, <em>dx</em>, <em>dy</em>) {</strong></code>
-<textarea id="editor"></textarea>
-<code><strong>}</strong></pre></code>
+<span style="color:#069;">function</span> filter(<em>terrain</em>, <em>altSea</em>, <em>altGround</em>, <em>dx</em>, <em>dy</em>) {</strong></pre></code>
+<textarea id="editor">// CONSTANTS
+var N = 100;        // no. of particles
+// var NOISE = ...; // process noise
+
+// INITIALIZATION
+if (typeof this.particles === 'undefined') {
+  this.particles = [];
+	
+  // TODO 1: Initialize N random particles [x, y, w].
+}
+
+// UPDATE
+/*----------------------------------------
+this.particles.forEach(function(p) {
+  // TODO 2: Update particle p's location.
+	
+  // Wrap particles around screen
+  for (var i = 0; i < 2; i++) {
+    if (p[i] < 0) p[i] += 500;
+    if (p[i] >= 500) p[i] -= 500;
+  }
+});
+----------------------------------------*/
+
+// WEIGHT CALCULATION & NORMALIZATION
+/*----------------------------------------
+var total = 0;
+this.particles.forEach(function(p) {
+  // TODO 3.1: Calculate new weight 'w' for particle 'p'.
+
+  p[2] = w;
+  total += w;
+});
+
+// TODO 3.2: Normalize each particle's weight so they sum to 1.
+----------------------------------------*/
+
+// RESAMPLING
+/*----------------------------------------
+// TODO 4.1: Calculate prefix sum of particle weights in 'buckets':
+var buckets = [];
+...
+this.particles.forEach(function(p) {
+  ...
+  ...
+});
+
+var newParticles = [];
+var r = math.random();
+for (var i = 0; i < N; i++) {
+  // TODO 4.2: Select particle and copy it into 'newParticles':
+  var particleID = ...;
+  var particle = ...;
+  newParticles.push(...);
+
+  r += 1/N;
+  if (r >= 1) r -= 1;
+}
+this.particles = newParticles;
+----------------------------------------*/
+
+return this.particles;</textarea>
+<code><strong>}</strong></code>
+				<button id="tob64">ascii &rarr; base64</button> 
+				<button id="toascii">base64 &rarr; ascii</button>
 			</td>
 		</tr>
 	</table>
@@ -84,9 +170,35 @@
 				ctx.restore();
 			}
 
+			var drawParticles = function() {
+				var err = false;
+
+				var ctx = context();
+				ctx.fillStyle = 'rgba(255, 255, 0, 0.5)';
+				particles.forEach(function(x) {
+					if (x[0] < 0 || x[0] >= 500 || x[1] < 0 || x[1] >= 500) {
+						err = true;
+						console.log('particle outside bounds (0 <= x,y < 500)');
+						return;
+					}
+					if (x[2] < 0 || x[2] > 1) {
+						err = true;
+						console.log('invalid particle weight (0 <= w <= 1)');
+						return;
+					}
+					ctx.beginPath();
+					ctx.arc(x[0], x[1], 6 * particles.length * x[2], 0, 2*Math.PI);
+					ctx.fill();
+				});
+
+				return err;
+			}
+
 			this.sim = function(filter) {
 				clear();
 				draw();
+
+				if (on && pause) { drawParticles(); return; }
 
 				if (on) {
 					var dt = 1/30;
@@ -106,13 +218,12 @@
 						lastY = y;
 					}
 
-					var ctx = context();
-					ctx.fillStyle = 'rgba(255, 255, 0, 0.5)';
-					particles.forEach(function(x) {
-						ctx.beginPath();
-						ctx.arc(x[0], x[1], 5, 0, 2*Math.PI);
-						ctx.fill();
-					});
+					if (drawParticles()) {
+						on = false;
+						$('#play').html('&#x25B6;');
+						reset();
+						return;
+					}
 
 					step++;
 					tid = setTimeout(function() { bot.sim(filter); }, $('#slomo')[0].checked * 30);
@@ -123,36 +234,54 @@
 		var on = false;
 		var bot = {};
 		var tid = -1;
+		var pause = false;
+		var filter;
 		function reset() {
 			on = false;
+			window.clearTimeout(tid);
+			tid = -1;
+			pause = false;
+			filter = undefined;
+			$('#play').html('&#x25B6;');
+
 			bot = new Robot();
 			bot.sim();
 		}
 
 		 $(document).ready(function(){
-			depth.at = function(x, y){ return this[Math.floor(y)][Math.floor(x)]; };
+			$('#plane').css('display', 'none');
 
 			reset();
+
 			if (typeof Cookies.get('editorState', {path: '/hy475/assign3/'}) !== 'undefined'){
 				$('#editor').val(Cookies.get('editorState', {path: '/hy475/assign3/'}));
 			}
 
-			$('#play').click(function(e){
-				on = !on;
-
-				if (on) {
-					$(this).html('&#x23F9;');
-					eval('function filter(){ this.pred = function(terrain, altSea, altGround, dx, dy) {'+ $('#editor').val() +'}; }');
-					bot.sim(new filter());
+			$('#play').click(function() {
+				if (!on) {
+					on = true;
+					eval('function wrapper(){ this.pred = function(terrain, altSea, altGround, dx, dy) {'+ $('#editor').val() +'}; }');
+					filter = new wrapper();
 				} else {
-					window.clearTimeout(tid);
-					$(this).html('&#x25B6;');
-					reset();
+					pause = !pause;
 				}
+
+				if (pause) $(this).html('&#x25B6;');
+				else { $(this).html('&#x23F8;'); bot.sim(filter); }
+			});
+
+			$('#stop').click(function() {
+				reset();
 			});
 
 			$('#editor').on('change keyup paste', function(){
 				Cookies.set('editorState', $(this).val(), {expires: 30, path: '/hy475/assign3/'});
+			});
+			$('#tob64').on('click', function(){
+				$('#editor').val(btoa($('#editor').val()));
+			});
+			$('#toascii').on('click', function(){
+				$('#editor').val(atob($('#editor').val()));
 			});
 		});
 	</script>
