@@ -139,7 +139,7 @@ _____________________________
 -----------------------------
 ```
 
-*Figure 1: (top) Uniform sampling: We create equal-sized buckets. We then generate (unfirom) random numbers (x) and observe which bucket they fall into. Since all buckets have the same size, each bucket has the same chance of getting picked. As is the nature with random numbers, some buckets get picked multiple times, some don't at all. This is equivalent to simply generating random array indices and returning the corresponding elements. (bottom) The buckets are now scaled proportionally to the particles' weights. Still generating uniform random numbers, bigger buckets now have a higher chance of getting hit. This requires additional coding.*
+*Figure 1: (top) Uniform sampling: We create equal-sized buckets. We then generate (unfirom) random numbers (x) and observe which bucket they fall into. Since all buckets have the same size, each bucket has the same chance of getting picked. As is the nature with random numbers, some buckets get picked multiple times, others don't at all. This is equivalent to simply generating random array indices and returning the corresponding elements. (bottom) The buckets are now scaled proportionally to the particles' weights. Still generating uniform random numbers, bigger buckets now have a higher chance of getting hit. This requires additional coding.*
 
 In contrast to [importance sampling](http://www.cs.cmu.edu/~16831-f14/notes/F14/16831_lecture04_josephba.pdf) (IS) (page 1) which then generates `N` random numbers and selects the particles in the corresponding buckets, low-variance sampling only generates a single random number `r` in the interval `[0, 1)` and then picks `N` particles from buckets `r + i * 1/N` for `i = 0..N-1`, wrapping around the interval.
 
@@ -156,9 +156,9 @@ var copy = arr.clone(); // copy and arr are independent
                         // copies of one another
 ```
 
-If done correctly you should observe the behavior shown in the video at the top of this assignment. Use this opportunity to play around with `N` and `NOISE` and develop an intuition about particle filters. Perhaps even code your own resampling method such as IS and compare its performance...
+If done correctly you should observe the behavior shown in the video at the top of this assignment. Use this opportunity to play around with `N` and `NOISE` and develop an intuition about particle filters. Try a different error metric, perhaps even code your own resampling method such as IS and compare its performance...
 
-Submit your base64-encoded code to denniskb(at)csd.uoc.gr by TODO:DATE. Good luck!
+Submit your base64-encoded code to denniskb(at)csd.uoc.gr by **19 Apr**. Good luck!
 
 ## Additional Reading
 
