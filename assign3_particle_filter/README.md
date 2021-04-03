@@ -145,12 +145,12 @@ In contrast to [importance sampling](http://www.cs.cmu.edu/~16831-f14/notes/F14/
 
 Onto coding! Navigate to section "RESAMPLING" and uncomment it. First we need to calculate the aformentioned `buckets`, which is nothing more than the [prefix sum](https://en.wikipedia.org/wiki/Prefix_sum) of our particles' weights. Navigate to "TODO 4.1" and implement it. It is very simple to code, you'll only need one additional helper variable to keep track of the running sum. You shouldn't need more than one short statement per "...".
 
-Next comes the actual resampling part. Navigate to "TODO 4.2". The series of random numbers `r` is already generated for you. All you need to do is copy particles from `this.particles` into `newParticles` according to which bucket `r` falls into. An efficient way to determine the correct bucket is [binary search](https://en.wikipedia.org/wiki/Binary_search_algorithm) which is already provided to you via the `Array.lowerBound(x)` method (which returns the *index* of the *smallest element >= x*). Remeber that you normalized the particle weights before, meaning the sum to 1. Please also note that each individual particle is itself an array/vector. In order to *copy* it you have to use the `Array.clone()` method, using `=` would simply create a reference:
+Next comes the actual resampling part. Navigate to "TODO 4.2". The series of random numbers `r` is already generated for you. All you need to do is copy particles from `this.particles` into `newParticles` according to which bucket `r` falls into. An efficient way to determine the correct bucket is [binary search](https://en.wikipedia.org/wiki/Binary_search_algorithm) which is already provided for you via the `Array.lowerBound(x)` method (which returns the *index* of the *smallest element >= x*). Remeber that you normalized the particle weights before, meaning they sum to 1. Please also note that each individual particle is itself an array/vector. In order to *copy* it you have to use the `Array.clone()` method, using `=` would simply create a reference:
 
 ```javascript
 var arr = [1, 2, 3];
 
-var ref = arr; // ref points to arr, chaning ref
+var ref = arr; // ref points to arr, changing ref
                // changes arr and vice versa
 var copy = arr.clone(); // copy and arr are independent
                         // copies of one another
