@@ -76,7 +76,51 @@
 // worldToEye - 3x3 transformation matrix (OpenGL)
 // eyeToClip  - 3x3 projection matrix (OpenGL)</span>
 <span style="color:#069;">function</span> map(<em>depth</em>, <em>worldToEye</em>, <em>eyeToClip</em>) {</strong></pre></code>
-<textarea id="editor"></textarea>
+<textarea id="editor">if (typeof this.grid === 'undefined') {
+  this.grid = new Array(4900);
+  
+  for (var i = 0; i < 4900; i++)
+    this.grid[i] = 1;
+}
+
+for (var y = 0; y < 70; y++) {
+  for (var x = 0; x < 70; x++) {
+    // Compute the 2D position of the grid cell center in world space (in px).
+    // the '1' represents the homogeneous constant w=1
+    var gridWorld = [..., ..., 1];
+    // Project gridWorld into eye (/camera) space aka into the
+    // sensor's viewing frustum.
+    var gridEye = ...;
+    // Project gridEye into clip space.
+    var gridClip = ...;
+  
+    // Clip (/skip) any grid cells whose center is outside
+    // the sensor's viewing frustum.
+    // We only want to clip grid cells that are behind the sensor or
+    // off to the left/right of its frustum. DO NOT clip any cells that
+    // are in front of the sensor, even if they are "outside its range".
+    if (...)
+      continue;
+  
+    // Compute normalized device coordinates from gridClip by
+    // doing the "homogeneous divide". We only care about the
+    // x-coordinate at this point, you can discard the other
+    // components of gridClip (y and w).
+    var xNDC = ...;
+    // Compute the screen coordinate of xNDC. The sensor resolution
+    // is 'depth.length'.
+    var xScreen = ...;
+  
+    // The observed depth is given by 'depth[xScreen]'',
+    // the physical depth is given by '-gridEye[1]'.
+    // If both are within 7 px of each other, store a '-1'
+    // in the corresponding array slot.
+    if (...)
+      this.grid[...] = -1;
+  } // end for x
+} // end for y
+  
+return this.grid;</textarea>
 <code><strong>}</strong></code>
 				<button id="tob64">ascii &rarr; base64</button> 
 				<button id="toascii">base64 &rarr; ascii</button>
