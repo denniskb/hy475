@@ -76,33 +76,7 @@
 // worldToEye - 3x3 transformation matrix (OpenGL)
 // eyeToClip  - 3x3 projection matrix (OpenGL)</span>
 <span style="color:#069;">function</span> map(<em>depth</em>, <em>worldToEye</em>, <em>eyeToClip</em>) {</strong></pre></code>
-<textarea id="editor">if (typeof this.grid === 'undefined') {
-	this.grid = new Array(4900);
-  
-	for (var i = 0; i < 4900; i++)
-	  this.grid[i] = 0;
-  }
-	
-  for (var y = 0; y < 70; y++) {
-	for (var x = 0; x < 70; x++) {
-	  var gridWorld = [10 * x + 5, 10 * y + 5, 1];
-	  var gridEye = math.multiply(worldToEye, gridWorld);
-	  var gridClip = math.multiply(eyeToClip, gridEye);
-  
-	  if (gridClip[0] < -gridClip[2] || gridClip[0] >= gridClip[2] || gridClip[1] < 0) {
-		continue;
-	  }
-  
-	  var xNDC = gridClip[0] / gridClip[2];
-	  var xScreen = math.floor((xNDC + 1) / 2 * depth.length);
-  
-	  if (math.abs(depth[xScreen] - -gridEye[1]) < 5) {
-		this.grid[x + y * 70] = 1;
-	  }
-	}
-  }
-	
-  return this.grid;</textarea>
+<textarea id="editor"></textarea>
 <code><strong>}</strong></code>
 				<button id="tob64">ascii &rarr; base64</button> 
 				<button id="toascii">base64 &rarr; ascii</button>

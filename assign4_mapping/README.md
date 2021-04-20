@@ -1,4 +1,5 @@
 # Assignment 4: SLAM Part 1&mdash;Mapping
+![cover image](cover.jpg)
 ## Introduction
 SLAM stands for **s**imultaneous **l**ocalization **a**nd **m**apping and describes a scenario in which a robot builts a map of an (unknown) environment that it is exploring while, at the same time, using said map to localize (/orient) itself. It is a very hard problem, not because it is comprised of **two** sub-problems/tasks, but because of their interaction: both the localizationd and the mapping task amplify each others' errors in a cyclic fashion.
 
@@ -28,4 +29,21 @@ Simply put, depth map fusion (DMF), as any other grid-based algorithm, quantizes
 
 ![occupancy grid visualization](grid.jpg)
 
-The cell size determines the map resolution. A self-driving car might require 10 cm, while a domestic robot might want to use a resolution of < 1 cm so it doesn't bump into things or knock things over. There's an inherent accuracy&hArr;memory consumption/speed tradeoff. In practice, DMF does a few more things in order to handle (depth) sensor noise which we will learn about shortly.
+The cell size determines the map resolution. A self-driving car might require 10 cm, while a domestic robot might want to use a resolution of < 1 cm so it doesn't bump into things or knock things over. There's an inherent accuracy&hArr;memory consumption/speed tradeoff. In practice, DMF does a few more things in order to handle (depth) sensor noise and improve accuracy which we will learn about shortly.
+
+## Preliminaries
+The implementation of DMF (or any other grid-based mapping algorithm) requires strong knowledge of linear algebra, especially
+
+- matrices and the role they play in transformations (translation, rotation, projection, conversion between coordinate systems and spaces)
+- spaces such as "world space", "eye/camera space", "clip space", and normalized device coordinates (NDC)
+- homogeneous coordinates
+- left- vs right-handed coordinate systems (and how to convert between them)
+- column- vs row-vectors and their impact on matrix multiplication order
+
+This knowledge is also quintessential for robotics in general (for example calculating the kinematics of a robotic arm), computer vision, computer graphics, ... and is beyond the scope of this readme file. If the above terms are new to you please carefully read through/watch the following tutorials:
+
+- [OpenGL Matrices](http://www.opengl-tutorial.org/beginners-tutorials/tutorial-3-matrices/)
+- [OpenGL - clip space, NDC, and screen space](https://www.youtube.com/watch?v=pThw0S8MR7w)
+
+## Mapping without Noise
+asdf
