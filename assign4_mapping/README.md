@@ -54,7 +54,7 @@ The first incarnation of our algorithm is described by the following pseudo-code
 2. **Initalize the grid to `1`**. Per convention, occupancy grids use positive values for free space and negative values for obstacles. We will use `1` and `-1`. Since, at the beginning, we start with an empty map, our entire grid is initialized to a value of `1`.
 3. **For each grid cell**:
     1. Compute the (2D) position of the cell *center* in *world space* (in px).
-    2. Project it into *clip space* and *clip* (/cull) any grid cells outside our depth sensors *viewing frustum*.
+    2. Project it into *clip space* and *clip* (/cull) any grid cells outside our depth sensor's *viewing frustum*.
     3. Compute *normalized device coordinates* and then *screen coordinates*, use those to read the corresponding depth value from our sensor.
     4. Compare the observed with the physical depth. If they are within 7 px, store a `-1` in the corresponding array slot.
 
@@ -131,7 +131,7 @@ That was easy, wasn't it? If we only lived in a perfect world without noise or d
 
 ![naive occupancy grid with noise](result1noise.jpg)
 
-Ouch!, that looks ugly! Two things happen when you turn on "noise": ~10% of the sensor's measurement are invalidated and don't return anything at all (the corresponding array slots contain `undefined`). The successful measurements suffer from (normally distributed) noise that *scales proportianlly with the distance*: For objetcs that are 50 px from the sensor your measurements my fluctuate by 1 or 2 px, for objects that are 400 px from the sensor they will fluctuate by up to 50 px.
+Ouch!, that looks ugly! Two things happen when you turn on "noise": ~10% of the sensor's measurement are invalidated and don't return anything at all (the corresponding array slots contain `undefined`). The successful measurements suffer from (normally distributed) noise that *scales proportianlly with the distance*: For objetcs that are 50 px from the sensor your measurements may fluctuate by 1 or 2 px, for objects that are 400 px from the sensor they will fluctuate by up to 50 px.
 
 ### Empty Space Carving
 The core observation of empty space carving and how it's able to handle even severe sensor noise, is that a depth measurement not only tells us something about our environment *at the point of the measurement* but also about everything *in front of the measurement*. Imagine your robot reports "obstacle 30 cm ahead". Not only do you know that there is an obstacle 30 cm ahead of you (disregarding sensor noise for now), you also know that **there are NO obstacles < 30 cm ahead of you**, or, in other words, that the entire space leading up to the obstacle is empty. After all, if it weren't, your robot would've reported 12 cm instead. How does this help with noise? If we've previously observed a region of space (a grid cell in our case) 10x as empty and our (noisy) sensor now reports an obstacle at this location, we can dismiss it as a noisy measurement with very high confidence (10 votes for empty vs 1 vote for occupied). Similarly, if we do store a `-1` in a grid cell because it is reported occupied by the sensor, but then observe the same cell as empty many times thereafter, we can confidently mark it as free after all.
@@ -154,7 +154,7 @@ If done correctly, and still with "sensor noise" turned on, you should observe t
 In spite of noise we obtain a much crisper empty&hArr;occupied boundary, not as clean as the noise-free version, but much better than before. The map also contains some gaps. Normally you'd tweak some thresholds now to find a balance between a hole-free yet accurate map. One tweakable threshold is the radius in which we consider a measurement to intersect a cell (7 in our case). The second threshold is hidden inside the simulator's code: Only cells with a value < -0.2 are rendered as white squares (i.e. only cells for which we're at least 60% certain).
 
 ### DMF
-DMF builds on top of empty space carving in order to further improve the accuracy of the obtained boundaries. One obvious way to increase accuracy is to increase our grid resolution, but it is very inefficient. In our case doubling the resolution quadruples the time and space requirements of the algorithm (in 3D it's even worse where your costs go up with the **cube** of the resolution). There's a more efficient way. So far, we've only been writing binary information (`1`s and `-1`s) to our grid. However, nothing stops us from writing continuous values based on exact difference between the measured and the physical depth. Previously when encountering an occupied next to an empty cell we were forced to draw a boundary right down the middle, since that's all the information we had available. If on the other hand, the cells stored accurate (estimates of) distance values (form their centers to the actual boundary) we could draw the boundary anywhere between two neighborig cells' centers, based on their values, dramatically increasing our effective resolution.
+DMF builds on top of empty space carving in order to further improve the accuracy of the obtained boundaries. One obvious way to increase accuracy is to increase our grid resolution, but it is very inefficient. In our case doubling the resolution quadruples the time and space requirements of the algorithm (in 3D it's even worse where your costs go up with the **cube** of the resolution). There's a more efficient way. So far, we've only been writing binary information (`1`s and `-1`s) to our grid. However, nothing stops us from writing continuous values based on the exact difference between the measured and the physical depth. Previously when encountering an occupied next to an empty cell we were forced to draw a boundary right down the middle, since that's all the information we had available. If on the other hand, the cells stored accurate (estimates of) distance values (form their centers to the actual boundary) we could draw the boundary anywhere between two neighborig cells' centers, based on their values, dramatically increasing our effective resolution.
 
 Implement the following changes:
 
@@ -167,6 +167,8 @@ If done correctly you should observe the following (with "sensor noise" stil tur
 
 Notice how much smoother and more accurate our boundaries are, esp. along the river shore.
 
+Please submit you (base64-encoded) final implementation of DMF to denniskb(at)csd.uoc.gr **by 11 May**.
+
 ## Omitted Details
 **How is `depth` computed**?
 
@@ -174,9 +176,9 @@ Via [ray casting](https://en.wikipedia.org/wiki/Ray_casting):
 
 ![raycasting expl](raycast.png)
 
-*An object (a heart) is approximated via a [signed distance field (SDF)](https://en.wikipedia.org/wiki/Signed_distance_function): Positive values represent (empty) cells outside of all objects, negative values represent (occupied) cells inside objects/obstacles. (not depcited) The cells do not merely store the sign, but the exact distance from the cell center to the closest boundary. A ray is cast from the observer (the depth sensor in our case) through each pixel and the SDF is probed until a sign change is observed. The last two samples are linearly interpolated based on the stored values and the exact distance is reported.*
+*An object (a heart) is approximated via a [signed distance field](https://en.wikipedia.org/wiki/Signed_distance_function) (SDF): Positive values represent (empty) cells outside of all objects, negative values represent (occupied) cells inside objects/obstacles. (not depcited) The cells do not merely store the sign, but the exact distance from the cell center to the closest boundary. A ray is cast from the observer (the depth sensor in our case) through each pixel and the SDF is probed until a sign change is observed. The last two samples are linearly interpolated based on the stored values and the exact distance is reported.*
 
-You can see the SDF that I'm using [here](https://github.com/denniskb/hy475/blob/master/docs/assign4/sdf.png) which I pre-computed in Matlab. The raycasting code is surprisingly simple and can be found [here](https://github.com/denniskb/hy475/blob/master/docs/assign4/index.html#L256). In practice you'd have to implement this yourself as you will use the raycasted depth to align it with the observed one, which will serve as an extra input to your EKF and improve your location estimation (in addition to using sensors, wheel encoders, etc.).
+You can see the SDF that I'm using [here](https://github.com/denniskb/hy475/blob/master/docs/assign4/sdf.png) which I pre-computed in Matlab. The raycasting code is surprisingly simple and can be found [here](https://github.com/denniskb/hy475/blob/master/docs/assign4/index.html#L256). In practice you'd have to implement this yourself as you will use the raycasted depth to align it with the observed one, which will serve as an extra input into your EKF and improve your location estimation (in addition to using sensors, wheel encoders, etc.).
 
 **How is the red boundary between occupied and free cells calculated?**
 
@@ -188,4 +190,4 @@ Simple transformation (rotation & translation) matrices are constructed by hand 
 
 **Can we improve results further?**
 
-A little bit. In practice we would define a sensor noise model and use it to weigh each measurement individually, rather than blindly incrementing `weight` (i.e. adding 1) for all, as we've been doing so far. Let's say our sensor reports 300 px and we compute a certainty of 20% for this measurement using our noise model. We would update our grid cell `[value, weight]` as `[value/weight + 0.2 * 300, weight + 0.2]`.
+A little bit. In practice we would define a sensor noise model and use it to weigh each measurement individually, rather than blindly incrementing `weight` (i.e. adding 1) for all, as we've been doing so far. Let's say our sensor reports 300 px and we compute a certainty of 20% for this measurement using our noise model. We would update our grid cell `[value, weight]` as `[(weight * value + 0.2 * 300) / (weight + 0.2), weight + 0.2]`.
