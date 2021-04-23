@@ -100,7 +100,7 @@ for (var y = 0; y < 70; y++) {
     // is 'depth.length'.
     var xScreen = ...;
 
-    // The observed depth is given by 'depth[xScreen]'',
+    // The observed depth is given by 'depth[xScreen]',
     // the physical depth is given by '-gridEye[1]'.
     // If both are within 7 px of each other, store a '-1'
     // in the corresponding array slot.
@@ -138,7 +138,7 @@ The core observation of empty space carving and how it's able to handle even sev
 
 To go from (na&#239;ve) occupancy grids to empty space carving requires two changes to our code:
 
-1. Instead of storing a single number in our grid cells, we store 2-component vectors `[sum, weight]`. The first component is the *sum* of values (of `1`s and `-1`s) we've observed at this grid cell, the second component, the weight, represents the total number of values we've summed. The final value is equal to `sum/weight`. Example: You've observed a grid cell 9x as empty and 1x time as occupied, thus `sum = 9-1 = 8`, `weight = 10`, and `value = sum/weight = 8/10 = 0.8`, i.e. you're 90% certain that this cell is indeed empty (a value of 0 would mean that we are undecided, i.e. 50% (un)certain). Another example: You've observed a grid cell 3x as occupied and 2x as empty, thus `sum = 2-3 = -1`, `weight = 5`, and `value = -0.2`, i.e. you're only 60% certain that this cell is indeed occupied. In other words, whenever we observe a grid cell as empty, we increment its sum, whenever we observe it as occupied, we decrement its sum. In either case we increment the weight.
+1. Instead of storing a single number in our grid cells, we store 2-component vectors `[sum, weight]`. The first component is the *sum* of values (of `1`s and `-1`s) we've observed at this grid cell, the second component, the weight, represents the total number of values we've summed. The final value is equal to `sum/weight`. Example: You've observed a grid cell 9x as empty and 1x time as occupied, thus `sum = 9-1 = 8`, `weight = 10`, and `value = sum/weight = 8/10 = 0.8`, i.e. you're 90% certain that this cell is indeed empty (a value of 0 would mean that we are undecided, i.e. 50% (un)certain). Another example: You've observed a grid cell 3x as occupied and 2x as empty, thus `sum = 2-3 = -1`, `weight = 5`, and `value = -0.2`, i.e. you're only 60% certain that this cell is indeed occupied. In other words, whenever we observe a grid cell as empty, we increment its sum, whenever we observe it as occupied, we decrement its sum. In either case we increment the weight. This representation is known as a [moving/running average](https://en.wikipedia.org/wiki/Moving_average).
 2. Not only do we want to update grid cells intersected by depth measurements, but also all cells in front of it according to the same rules as specified above.
 
 Implement these changes now:
@@ -167,7 +167,7 @@ If done correctly you should observe the following (with "sensor noise" stil tur
 
 Notice how much smoother and more accurate our boundaries are, esp. along the river shore.
 
-Please submit you (base64-encoded) final implementation of DMF to denniskb(at)csd.uoc.gr **by 11 May**.
+Please submit your (base64-encoded) final implementation of DMF to denniskb(at)csd.uoc.gr **by 11 May**.
 
 ## Omitted Details
 **How is `depth` computed**?
