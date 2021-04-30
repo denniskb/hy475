@@ -43,6 +43,7 @@ The implementation of DMF (or any other grid-based mapping algorithm) requires s
 This knowledge is also quintessential for robotics in general (for example calculating the kinematics of a robotic arm), computer vision, computer graphics, ... and is beyond the scope of this readme file. If the above terms are new to you please carefully read through/watch the following tutorials:
 
 - [Journey of a Point: From World- to Screen Space](https://github.com/denniskb/hy475/wiki/Journey-of-a-Point:-From-World--to-Screen-Space)
+- [Lecture 17 (assign. 4 tutorial)](https://www.csd.uoc.gr/~hy475/lectures/zoom_assign4.mp4)
 - [OpenGL Matrices](http://www.opengl-tutorial.org/beginners-tutorials/tutorial-3-matrices/)
 - [OpenGL - clip space, NDC, and screen space](https://www.youtube.com/watch?v=pThw0S8MR7w)
 
