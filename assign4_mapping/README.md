@@ -145,9 +145,9 @@ To go from (na&#239;ve) occupancy grids to empty space carving requires two chan
 
 Implement these changes now:
 
-1. Instead of initalizing your grid with `1`, initialize it wit `[0,0]` (the first value doesn't matter since the weight is `0` to begin with anyway, meaning "we haven't observed this grid cell yet", i.e. "we have 0 confidence in its value".)
+1. Instead of initalizing your grid with `1`, initialize it with `[0,0]` (the first value doesn't matter since the weight is `0` to begin with anyway, meaning "we haven't observed this grid cell yet", i.e. "we have 0 confidence in its value".)
 2. Instead of simply storing a `-1` in occupied cells, use the new update rules: Decrement the sum and increment the weight.
-3. Add an `else if (...) { ... }` case after your last `if` case where you update *occupied* cells (the one you just modified). Inside the `else if` case you'll update *empty* cells instead by incrementing their sum and incrementing their weight, **but only cells in front of the measurement**.
+3. Add an `else if (...) { ... }` case after your last `if` case where you update *occupied* cells (the one you just modified). Inside the `else if` case you'll update *empty* cells instead by incrementing their sum and incrementing their weight, [**but only cells closer than the measurement**](https://github.com/denniskb/hy475/issues/20#issuecomment-830320140).
 
 If done correctly, and still with "sensor noise" turned on, you should observe the following:
 
