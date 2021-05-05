@@ -192,4 +192,4 @@ Simple transformation (rotation & translation) matrices are constructed by hand 
 
 **Can we improve results further?**
 
-A little bit. In practice we would define a sensor noise model and use it to weigh each measurement individually, rather than blindly incrementing `weight` (i.e. adding 1) for all, as we've been doing so far. Let's say our sensor reports 300 px and we compute a certainty of 20% for this measurement using our noise model. We would update our grid cell `[value, weight]` as `[(weight * value + 0.2 * 300) / (weight + 0.2), weight + 0.2]`.
+A little bit. In practice we would define a sensor noise model and use it to weigh each measurement individually, rather than blindly incrementing `weight` (i.e. adding 1) for all, as we've been doing so far. Let's say our sensor reports 300 px and we compute a certainty of 20% for this measurement using our noise model. We would update our grid cell `[sum, weight]` as `[sum + 0.2 * 300, weight + 0.2]`. You will notice that what we've been doing so far is exactly equivalent to the above, albeit with an (implicit) certainty of 100%.
