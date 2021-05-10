@@ -72,16 +72,16 @@ This is the key observation that will allow us to eliminate drift via particle f
 
 ## Step 4: Weight Calculation
 
-Before we can re-sample our particles we need to calculate appropriate weights. We will do so by ray-casting our own maps and comparing the obtained depth map with the observed one. The more similar they are, the more accurate is our map, and the higher our weight should be. It is important that we perform this step after the location update but before the DMF step as integrating the current depth map into our grid first might falsify our results. I.e.:
+Before we can re-sample our particles we need to calculate appropriate weights. We will do so by ray-casting our own maps and comparing the obtained depth map with the observed one. The more similar they are, the more accurate is our map, and the higher our weight should be. It is important that we perform this step after the location update but before the DMF step, as integrating the current depth map into our grid first might falsify our results. I.e.:
 
 1. The real robot moves in a certain way
 2. We predict its movement (imperfectly)
-3. We then raycast *our* grid from *our* believed location and compare the obtained depth map with the observed one (from the sensor). The more similar they are, the better our prediction step worked.
+3. We then raycast *our* grid from *our* believed location and compare the obtained depth map with the observed one (from the sensor). The more similar they are, the better our prediction step had worked. We compute our particle's weight.
 4. Only then do we integrate the observed depth into our grid via DMF.
 
 In order to ray-cast your grids you can use the `math.raycast(grid, x, y, clipToWorld)` function. It produces a 50-px depth map just like `depth`. It requires a `clipToWorld` matrix which you can calculate using your `worldToEye` and `eyeToClip` matrices and the [math.js](https://mathjs.org/docs/reference/functions.html) library.
 
-In order calculate the weight you will need to calculate the error between 2 depth maps. A simple metric such as 'mean absolute error' or 'mean squared error' will do. Don't forget to update your particle's weight.
+In order to calculate the weight you will need to calculate the error between 2 depth maps. A simple metric such as 'mean absolute error' or 'mean squared error' will do. Use the functions provided by math.js to avoid writing loops. Don't forget to update your particle's weight.
 
 ## Step 5: Re-sampling
 
