@@ -158,7 +158,7 @@ In spite of noise we obtain a much crisper empty&hArr;occupied boundary, not as 
 ### DMF
 DMF builds on top of empty space carving in order to further improve the accuracy of the obtained boundaries. One obvious way to increase accuracy is to increase our grid resolution, but it is very inefficient. In our case doubling the resolution quadruples the time and space requirements of the algorithm (in 3D it's even worse where your costs go up with the **cube** of the resolution). There's a more efficient way. So far, we've only been writing binary information (`1`s and `-1`s) to our grid. However, nothing stops us from writing continuous values based on the exact difference between the measured and the physical depth. Previously when encountering an occupied next to an empty cell we were forced to draw a boundary right down the middle, since that's all the information we had available. If on the other hand, the cells stored accurate (estimates of) distance values (form their centers to the actual boundary) we could draw the boundary anywhere between two neighborig cells' centers, based on their values, dramatically increasing our effective resolution.
 
-Implement the following changes:
+Replace your hitherto grid cell update code with the following, new logic:
 
 1. Compute the *continuous* signed distance `var sd = depth[xScreen] - -gridEye[1]` which will be negative for cells behind a measurment and positive for cells in front of a measurement, as it should be...
 2. Update every grid cell that is *no more than 20 px behind* a depth measuremt with `min(20, sd)`.
