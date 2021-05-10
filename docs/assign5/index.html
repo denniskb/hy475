@@ -1,0 +1,399 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>HY 475 Robot Simulator</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style>
+	* { box-sizing: border-box; margin: 0; padding: 0; }
+	body { font-family: Helvetica, 'Open Sans', sans-serif; background-color: #f5f5f5; }
+	#render { border: solid 1px black; width: 256px; height: 256px; background-image: url('map.jpg'); }
+	#editor { min-width:400px; width: 100%; height: 65vh; overflow: auto; white-space: pre; resize: none;
+		padding:5px 1em; border: solid 1px black; }
+	#particles { display: block; height: 128px; padding: 20px 0; }
+	.canvas { background-color: white; width:128px; height:128px; background-image: url('map2.jpg'); background-size: 128px; }
+	.canvas + .canvas { margin-left: 10px; }
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="../math.js"></script>
+<script src="../js.cookie-2.2.1.min.js"></script>
+<script>
+	math.import({
+		normrnd: function (m = 0, s = 1) {
+			var U1 = math.random(0.000001, 1);
+			var U2 = math.random(0.000001, 1);
+			return Math.sqrt(-2*Math.log(U1)) * Math.cos(2*Math.PI*U2) * s + m;
+		},
+		lerp: function (a, b, weightB) {
+			return a + weightB * (b - a);
+		},
+		world2eye: function(x, y, dir) {
+			var T = [[1, 0, -x], [0, 1, -y], [0, 0, 1]];
+			var s = Math.sin(dir - Math.PI/2);
+			var c = Math.cos(dir - Math.PI/2);
+			var R = [[c, -s, 0], [s, c, 0], [0, 0, 1]];
+			return math.multiply(R, T);
+		},
+		dmf: function(grid, depth, worldToEye, eyeToClip) {
+			for (var y = 0; y < 32; y++) {
+				for (var x = 0; x < 32; x++) {
+					var gridWorld = [8 * x + 4, 8 * y + 4, 1];
+					var gridEye = math.multiply(worldToEye, gridWorld);
+					var gridClip = math.multiply(eyeToClip, gridEye);
+				
+					if (gridClip[0] < -gridClip[2] || gridClip[0] >= gridClip[2] || gridClip[1] < -gridClip[2])
+						continue;
+				
+					var xNDC = gridClip[0] / gridClip[2];
+					var xScreen = math.floor((xNDC + 1) / 2 * depth.length);
+				
+					var i = x + y * 32;
+					var sd = depth[xScreen] - -gridEye[1];
+					if (sd >= -12) {
+						grid[i][0] += math.min(12, sd);
+						grid[i][1]++;
+					}
+				} // end for x
+			} // end for y
+		},
+		raycast: function(grid, x, y, clipToWorld) {
+			// HACK
+			grid = sdf;
+			function grid2d(xx, yy) {
+				return grid[Math.floor(xx) + 256 * Math.floor(yy)];
+			}
+
+			var depth = new Array(50);
+			for (var i = 0; i < depth.length; i++) {
+				var d = math.subtract(math.multiply(clipToWorld, [(2 * i + 1) / depth.length - 1, -1, 1]).slice(0, 2), [x, y]);
+				var dnorm = math.norm(d);
+				d = math.divide(d, dnorm);
+				
+				var t = 0;
+				do {
+					var tt = grid2d(x + t * d[0], y + t * d[1]);
+					t += tt;
+				} while (tt > 0);
+				t /= dnorm;
+				
+				depth[i] = t > 100  ? -10 : t;
+			}
+			return depth;
+		}
+	});
+
+	Array.prototype.lowerBound = function(x) {
+		var arr = this;
+		var step = function(l, r) {
+			if (l >= r) return l;
+			var m = Math.floor((l + r) / 2);
+			if (arr[m] >= x) return step(l, m);
+			else return step(m+1, r);
+		};
+
+		return step(0, this.length-1);
+	};
+	function clone(x) {
+		if (Array.isArray(x)) {
+			var result = [];
+			x.forEach(function(i){ result.push(clone(i)); });
+			return result;
+		} else {
+			return x;
+		}
+	}
+</script>
+</head>
+<body>
+	<table width="100%" border="0">
+		<tr>
+			<td align="center" style="padding:10px;" width="50%">
+				<input id="noise" type="checkbox"> Tyre slip<br/>&nbsp;<br/> 
+				<canvas id="render" width="256" height="256"></canvas><br>&nbsp;<br>
+				<button id="play" type="button">&#x25B6;</button>
+				<div id="particles"></div>
+			</td>
+			<td style="padding:10px;">
+				<code><pre><strong>
+<span style="color:#393; font-weight: normal;">// deltaDir  - robot turn delta (radians)
+// depth     - 1D sensor depth map (px)
+// eyeToClip - 3x3 projection matrix (OpenGL)</span>
+<span style="color:#069;">function</span> slam(<em>deltaDir</em>, <em>depth</em>, <em>eyeToClip</em>) {</strong></pre></code>
+<textarea id="editor">if (typeof this.grid === 'undefined') {
+  this.x = 50;
+  this.y = 200;
+  this.dir = 0;
+
+  this.grid = new Array(1024);
+
+  for (var i = 0; i < 1024; i++)
+    this.grid[i] = [0, 0];
+}
+
+this.dir += deltaDir;
+this.x += 2 * math.cos(this.dir);
+this.y -= 2 * math.sin(this.dir);
+
+var worldToEye = math.world2eye(this.x, this.y, this.dir);
+
+math.dmf(this.grid, depth, worldToEye, eyeToClip);
+
+return [[0, this.x, this.y, this.dir, this.grid]];</textarea>
+<code><strong>}</strong></code>
+				<button id="tob64">ascii &rarr; base64</button> 
+				<button id="toascii">base64 &rarr; ascii</button>
+			</td>
+		</tr>
+	</table>
+
+	<script>
+		function context() { return $('#render')[0].getContext('2d'); }
+		function clear() { context().clearRect(0, 0, $('#render').width()+2, $('#render').height()+2); }
+
+		var colors = ["#93d55e","#cc98e1","#dcb457","#6dd2bd","#ee9086"];
+		function drawGrid(grid, ctx) {
+			function val(x) {
+				return x[0] / (x[1] + 0.001);
+			}
+			
+			function center(x) {
+				return 8 * x + 4;
+			}
+
+			// boundaries (marching squares)
+			ctx.beginPath();
+			ctx.strokeStyle = '#f00';
+			ctx.lineWidth = 2;
+			for (var y = 0; y < 31; y++) {
+				for (var x = 0; x < 31; x++) {
+					var i00 = val(grid[x + y * 32]);
+					var i01 = val(grid[x + 1 + y * 32]);
+					var i11 = val(grid[x + 33 + y * 32]);
+					var i10 = val(grid[x + 32 + y * 32]);
+
+					var points = [];
+
+					if (Math.sign(i00 * i01) < 0) {
+						points.push([math.lerp(center(x), center(x+1), Math.abs(i00) / (Math.abs(i00) + Math.abs(i01))), center(y)]);
+					}
+					if (Math.sign(i01 * i11) < 0) {
+						points.push([center(x+1), math.lerp(center(y), center(y+1), Math.abs(i01) / (Math.abs(i01) + Math.abs(i11)))]);
+					}
+					if (Math.sign(i11 * i10) < 0) {
+						points.push([math.lerp(center(x), center(x+1), Math.abs(i10) / (Math.abs(i10) + Math.abs(i11))), center(y+1)]);
+					}
+					if (Math.sign(i10 * i00) < 0) {
+						points.push([center(x), math.lerp(center(y), center(y+1), Math.abs(i00) / (Math.abs(i00) + Math.abs(i10)))]);
+					}
+
+					if (points.length >= 2) {
+						ctx.moveTo(points[0][0], points[0][1]);
+						ctx.lineTo(points[1][0], points[1][1]);
+					}
+				}
+			}
+			ctx.stroke();
+		}
+
+		function Robot() {
+			var step = 0;
+			var range = 100;
+			var FOV2 = Math.PI/4;
+
+			var dir = 0;
+			var x = 50;
+			var y = 200;
+
+			var eyeToClip = function(){
+				var n = 1;
+				var f = range;
+				var r = Math.tan(FOV2);
+				return [[n/r, 0, 0], [0, -(f+n)/(f-n), -2*f*n/(f-n)], [0, -1, 0]];
+			}();
+
+			function drawBot(x, y, dir, color) {
+				var ctx = context();
+				ctx.globalAlpha = 0.5;
+				ctx.beginPath();
+				ctx.strokeStyle = '#000';
+				ctx.fillStyle = color;
+				ctx.lineWidth = 1;
+				ctx.arc(x, y, 10, 0, 2 * Math.PI);
+				ctx.fill();
+				ctx.moveTo(x, y);
+				ctx.lineTo(x+10*Math.cos(dir), y-10*Math.sin(dir));
+				ctx.stroke();
+				ctx.globalAlpha = 1;
+			}
+
+			function drawCone(x, y, dir) {
+				var ctx = context();
+				var d = range / Math.cos(FOV2);
+				ctx.beginPath();
+				ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+				ctx.moveTo(x, y);
+				ctx.lineTo(x + d * Math.cos(dir+FOV2), y - d * Math.sin(dir+FOV2));
+				ctx.lineTo(x + d * Math.cos(dir-FOV2), y - d * Math.sin(dir-FOV2));
+				ctx.closePath();
+				ctx.fill();
+			}
+
+			this.sim = function(map) {
+				dir = path[step];
+				x += 2 * Math.cos(dir);
+				y -= 2 * Math.sin(dir);
+
+				var deltaDir = dir - (step > 0 ? path[step-1] : 0);
+				deltaDir = math.normrnd(deltaDir, $('#noise')[0].checked * 0.07 * Math.abs(deltaDir));
+
+				var depth = math.raycast(sdf, x, y, math.inv(math.multiply(eyeToClip, math.world2eye(x, y, dir))));
+
+				var particles = map.map(deltaDir, depth, eyeToClip);
+
+				clear();
+				particles.forEach(function (p, i) {
+					drawBot(p[1], p[2], p[3], colors[i % colors.length]);
+				});
+				drawBot(x, y, dir, '#fe0');
+				drawCone(x, y, dir);
+
+				particles.sort(function (a, b) { return a[0] > b[0]; });
+				drawGrid(particles[0][4], context());
+
+				particles = particles.slice(1, 5);
+				particles.forEach(function (p, i) {
+					var ctx = $('#particles').children()[i].getContext('2d');
+					ctx.clearRect(0, 0, 256, 256);
+					drawGrid(p[4], ctx);
+				});
+
+				step++;
+				if (on && step < path.length)
+					tid = setTimeout(function() { bot.sim(map); }, 0);
+			};
+		}
+
+		var sdf = [];
+		var path;
+		var on = false;
+		var bot = {};
+		var tid = -1;
+		function reset() {
+			window.clearTimeout(tid);
+			tid = -1;
+			bot = new Robot();
+			clear();
+
+			$('#particles').children().remove();
+			for (var i = 0; i < 4; i++) {
+				var canvas = document.createElement('canvas');
+				canvas.width = 256;
+				canvas.height = 256;
+				canvas.className = 'canvas';
+				$('#particles').append(canvas);
+			}
+		}
+
+		$(document).ready(function(){
+			$('#sdf').css('display', 'none');
+
+			(function(){
+				var myImage = document.getElementById('sdf');
+				var w = myImage.width, h = myImage.height;
+				var canvas = document.createElement('canvas');
+				canvas.width = w;
+				canvas.height = h;
+				var ctx = canvas.getContext('2d');
+				ctx.drawImage(myImage, 0, 0);
+				var data = ctx.getImageData(0, 0, w, h).data;
+				sdf = new Array(w*h);
+				for (var i = 0; i < sdf.length; i++) sdf[i] = data[4*i]; 
+			})();
+
+			path = $('#path').val().split(',');
+			for (var i = 0; i < path.length; i++) path[i] *= 1;
+
+			if (typeof Cookies.get('editorState', {path: '/hy475/assign5/'}) !== 'undefined'){
+				$('#editor').val(Cookies.get('editorState', {path: '/hy475/assign5/'}));
+			}
+
+			$('#play').click(function() {
+				on = !on;
+				reset();
+
+				if (on) {
+					eval('function wrapper(){ this.map = function(deltaDir, depth, eyeToClip) {'+ $('#editor').val() +'}; }');
+					bot.sim(new wrapper());
+					$(this).html('&#x23F9;');
+				} else {
+					$(this).html('&#x25B6;');
+				}
+			});
+
+			$('#editor').on('change keyup paste', function(){
+				Cookies.set('editorState', $(this).val(), {expires: 30, path: '/hy475/assign5/'});
+			});
+			$('#tob64').on('click', function(){
+				$('#editor').val(btoa($('#editor').val()));
+			});
+			$('#toascii').on('click', function(){
+				$('#editor').val(atob($('#editor').val()));
+			});
+		});
+	</script>
+	<!--<input type="hidden" id="path" value="0.00,0.00,0.00,0.04,0.12,0.25,0.26,0.29,0.34,0.37,0.41,0.46,0.55,0.62,0.67,0.71,0.78,0.88,0.99,1.10,1.19,1.21,1.28,1.29,1.32,1.36,1.36,1.36,1.37,1.39,1.41,1.44,1.44,1.44,1.45,1.49,1.52,1.57,1.59,1.59,1.65,1.68,1.68,1.74,1.74,1.74,1.74,1.74,1.66,1.51,1.39,1.37,1.33,1.28,1.28,1.21,1.13,1.00,0.83,0.68,0.62,0.56,0.52,0.51,0.51,0.49,0.36,0.17,-0.00,-0.12,-0.13,-0.15,-0.15,-0.14,-0.14,-0.13,-0.12,-0.11,-0.06,0.01,0.01,0.03,0.08,0.12,0.14,0.23,0.25,0.28,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.26,0.26,0.26,0.25,0.25,0.25,0.25,0.23,0.23,0.23,0.22,0.21,0.21,0.21,0.11,0.08,0.01,-0.05,-0.11,-0.14,-0.16,-0.19,-0.30,-0.52,-0.73,-0.94,-0.99,-1.05,-1.26,-1.54,-1.57,-1.65,-1.76,-1.90,-2.08,-2.20,-2.34,-2.45,-2.49,-2.49,-2.32,-2.20,-2.14,-2.05,-1.72,-1.54,-1.36,-1.21,-1.11,-1.06,-1.03,-1.03,-1.04,-1.07,-1.10,-1.21,-1.53,-1.89,-2.12,-2.26,-2.40,-2.58,-2.70,-2.80,-2.82,-2.82,-2.82,-2.82,-2.82,-2.82,-2.82,-2.85,-2.89,-2.92,-2.92,-2.94,-2.98,-3.06,-3.10,-3.10,-3.10,-3.10,-3.10,-3.13,-3.13,3.12,3.12,3.12,3.12,3.12,3.10,2.90,2.83,2.81,2.76,2.67,2.56,2.34,2.21,2.20,2.22,2.35,2.52,2.66,2.74,2.79,2.97,-3.14,-2.89,-2.75,-2.74,-2.68,-2.64,-2.62,-2.62,-2.59,-2.51,-2.42,-2.39,-2.30,-2.27,-2.27,-2.27,-2.27,-2.27,-2.27,-2.27,-2.27,-2.27,-2.27,-2.27,-2.27,-2.27,-2.22,-2.27,-2.33,-2.44,-2.44,-2.43,-2.41,-2.39,-2.43,-2.45,-2.48,-2.53,-2.58,-2.68,-2.74,-2.81,-2.85,-2.94,-3.03,3.13,3.02,2.93,2.86,2.84,2.74,2.67,2.63,2.61,2.51,2.42,2.26,2.08,1.96,1.89,1.80,1.80,1.74,1.10,0.60,-0.13,-0.71,-0.85,-0.88,-0.88,-0.88,-0.88,-0.88,-0.88">-->
+	<input type="hidden" id="path" value="0.00,0.00,0.00,0.04,0.12,0.25,0.26,0.29,0.34,0.37,0.41,0.46,0.55,0.62,0.67,0.71,0.78,0.88,0.99,1.10,1.19,1.21,1.28,1.29,1.32,1.36,1.36,1.36,1.37,1.39,1.41,1.44,1.44,1.44,1.45,1.49,1.52,1.57,1.59,1.59,1.65,1.68,1.68,1.74,1.74,1.74,1.74,1.74,1.66,1.51,1.39,1.37,1.33,1.28,1.28,1.21,1.13,1.00,0.83,0.68,0.62,0.56,0.52,0.51,0.51,0.49,0.36,0.17,-0.00,-0.12,-0.13,-0.15,-0.15,-0.14,-0.14,-0.13,-0.12,-0.11,-0.06,0.01,0.01,0.03,0.08,0.12,0.14,0.23,0.25,0.28,0.27,0.27,0.27,0.27,0.27,0.27,0.27,0.26,0.26,0.26,0.25,0.25,0.25,0.25,0.23,0.23,0.23,0.22,0.21,0.21,0.21,0.11,0.08,0.01,-0.05,-0.11,-0.14,-0.16,-0.19,-0.30,-0.52,-0.73,-0.94,-0.99,-1.05,-1.26,-1.54,-1.57,-1.65,-1.76,-1.90,-2.08,-2.20,-2.34,-2.45,-2.49,-2.49,-2.32,-2.20,-2.14,-2.05,-1.72,-1.54,-1.36,-1.21,-1.11,-1.06,-1.03,-1.03,-1.04,-1.07,-1.10,-1.21,-1.53,-1.89,-2.12,-2.26,-2.40,-2.58,-2.70,-2.80,-2.82,-2.82,-2.82,-2.82,-2.82,-2.82,-2.82,-2.85,-2.89,-2.92,-2.92,-2.94,-2.98,-3.06,-3.10,-3.10,-3.10,-3.10,-3.10,-3.13,-3.13,-3.16,-3.16,-3.16,-3.16,-3.16,-3.18,-3.38,-3.45,-3.47,-3.52,-3.61,-3.72,-3.94,-4.07,-4.08,-4.06,-3.93,-3.76,-3.62,-3.54,-3.49,-3.31,-3.14,-2.89,-2.75,-2.74,-2.68,-2.64,-2.62,-2.62,-2.59,-2.51,-2.42,-2.39,-2.30,-2.27,-2.27,-2.27,-2.27,-2.27,-2.27,-2.27,-2.27,-2.27,-2.27,-2.27,-2.27,-2.27,-2.22,-2.27,-2.33,-2.44,-2.44,-2.43,-2.41,-2.39,-2.43,-2.45,-2.48,-2.53,-2.58,-2.68,-2.74,-2.81,-2.85,-2.94,-3.03,-3.15,-3.26,-3.35,-3.42,-3.44,-3.54,-3.61,-3.65,-3.67,-3.77,-3.86,-4.02,-4.20,-4.32,-4.39,-4.48,-4.48,-4.54,-5.18,-5.68,-6.41,-6.99,-7.13,-7.16,-7.16,-7.16,-7.16,-7.16,-7.16">
+	<img id="sdf" style="visibility: hidden;" src="data:image/png;base64,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
+	O/Uf5mFOKaOE3EwAAAAASUVORK5CYII=">
+</body>
+</html>
