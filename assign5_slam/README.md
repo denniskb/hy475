@@ -56,15 +56,15 @@ Generalize this code from 1 to `N` particles. Set `N=5` for now. Still with 'Tyr
 
 ![particle filter](n5_nonoise.jpg)
 
-The simulator always displays your 5 best particles' maps (determined by their weight, highest&rarr;lowest)  regardless of how many particles you create. The best particle's map is shown in large at the top followed by smaller renditions of the next-best 4 maps. In addition the simulator renders a ghost robot for *every* particle (no matter how many there are) in the top image. The reason we see 5 maps but only 2 bots is because all our 5 particles are identitcal: They are initialized and updated exactly the same. Thus they all clump together in the same location and produce the exact same map.
+The simulator always displays your 5 best particles' maps (determined by their weight, highest&rarr;lowest)  regardless of how many particles you create. The best particle's map is shown in large at the top followed by smaller renditions of the 4 next-best maps. In addition the simulator renders a ghost robot for *every* particle (no matter how many there are) in the top image. The reason we see 5 maps but only 1 ghost bot is because all our 5 particles are identitcal: They are initialized and updated exactly the same. Thus they all clump together in the same location and produce the exact same map.
 
 ## Step 3: Randomization
 
-Add some randomization to your particles' update steps in order to diversify them. For this you'll need to know that the robot executes turn inputs with an accuracy of `0.07 * abs(deltaDir)` STDs. You can use the `math.random()` function to generate uniformly distributed random numbers or the `math.normrnd(mu, std)` for normally distributed random numbers. If done correctly, you should observe the following (still with 'Tyre slip' turned on):
+Add some randomization to your particles' update steps in order to diversify them. For this you'll need to know that the robot executes turn inputs with an accuracy of `0.07 * abs(deltaDir)` STDs. You can use the `math.random()` function to generate uniformly distributed random numbers or the `math.normrnd(mu, std)` function for normally distributed random numbers. If done correctly, you should observe the following (still with 'Tyre slip' turned on):
 
 ![noise](n5_noresample.jpg)
 
-The particles are no longer clumped together (as seen by the overlapping ghost bots in the top image) since every particle follows/explores a slightly different path. As you can see this also results in different maps being reconstructed per particle now.
+The particles are no longer clumped together (as seen by the overlapping ghost bots in the top image) since every particle follows/explores a slightly different path now. As you can see this also results in different maps being reconstructed per particle.
 
 Carefully study each individual map. Notice how they all got strenghts and weaknesses. For example, the 3rd map from the left (bottom row) very closely resembles the bottom left corner of the room, but it cuts into the couch. The couch looks nice in the 4th map from the right (bottom row) but the space between the bed and desk isn't as crisp as in the 1st map (bottom row)...
 
