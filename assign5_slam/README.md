@@ -77,7 +77,7 @@ Before we can re-sample our particles we need to calculate appropriate weights. 
 1. The real robot moves in a certain way
 2. We predict its movement (imperfectly)
 3. We then raycast *our* grid from *our* believed location and compare the obtained depth map with the observed one (from the sensor). The more similar they are, the better our prediction step had worked. We compute our particle's weight.
-4. Only then do we integrate the observed depth into our grid via DMF.
+4. Only then do we integrate the observed depth map into our grid via DMF.
 
 In order to ray-cast your grids you can use the `math.raycast(grid, x, y, clipToWorld)` function. It produces a 50-px depth map just like `depth`. It requires a `clipToWorld` matrix which you can calculate using your `worldToEye` and `eyeToClip` matrices and the [math.js](https://mathjs.org/docs/reference/functions.html) library.
 
@@ -106,3 +106,5 @@ The algorithm is very sensitive to the randomization and weight calculation. Tun
 ![fastslam](final.jpg)
 
 (Notice how nicely all 5 particles converged to almost the true location.)
+
+Submit your final implementation to denniskb(at)csd.uoc.gr by **24 May**.
