@@ -1,0 +1,271 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>HY 475 Robot Simulator</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style>
+	* { box-sizing: border-box; margin: 0; padding: 0; }
+	body { font-family: Helvetica, 'Open Sans', sans-serif; }
+	#render { border: solid 1px black; min-width: 500px; }
+	#editor { min-width:400px; width: 100%; height: 70vh; overflow: auto; white-space: pre; resize: none;
+		padding:5px 1em; border: solid 1px black; }
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="../math.js"></script>
+<script src="../js.cookie-2.2.1.min.js"></script>
+<script>
+	math.import({
+		normrnd: function (m = 0, s = 1) {
+			var U1 = math.random(0.000001, 1);
+			var U2 = math.random(0.000001, 1);
+			return Math.sqrt(-2*Math.log(U1)) * Math.cos(2*Math.PI*U2) * s + m;
+		},
+		drawForceField: function(f) {
+			var ctx = context();
+			for (var x = 25; x < 500; x += 25) {
+				for (var y = 25; y < 500; y += 25) {
+					var d = f([x, y], obs);
+					ctx.beginPath();
+					ctx.fillStyle = '#999';
+					ctx.arc(x, y, 2.5, 0, 2 * Math.PI);
+					ctx.fill();
+					
+					ctx.beginPath();
+					ctx.strokeStyle = '#666';
+					ctx.lineWidth = 1;
+					ctx.moveTo(x, y);
+					ctx.lineTo(x + 15*d[0], y + 15*d[1]);
+					ctx.stroke();
+				}
+			}
+		},
+		drawPath: function(f) {
+			var path = f(obs);
+			if (path.length == 0) return;
+
+			var ctx = context();
+			ctx.beginPath();
+			ctx.strokeStyle = '#f00';
+			ctx.lineWidth = 2;
+			ctx.moveTo(path[0][0], path[0][1]);
+			path.shift();
+			path.forEach(function (p) {
+				ctx.lineTo(p[0], p[1]);
+			});
+			ctx.stroke();
+		},
+		normalize: function (v) {
+			return math.divide(v, math.norm(v));
+		}
+	});
+
+	Array.prototype.back = function() {
+		return this[this.length-1];
+	};
+</script>
+</head>
+<body>
+	<table width="100%" border="0">
+		<tr>
+			<td align="center" style="padding:10px;" width="50%">
+				<input id="pcl" type="checkbox"> Show Lidar | 
+				<input id="slomo" type="checkbox" checked> Slow Motion<br/>
+				<canvas id="render" width="500" height="500"></canvas><br/>&nbsp;<br/>
+				<button id="play" type="button">&#x25B6;</button>
+			</td>
+			<td style="padding:10px;">
+				<code><pre><strong><span style="color:#393; font-weight: normal;">// dst - 2D location [x, y] of target in px
+// pcl - Lidar-generated list of 2D points [[x, y], ...]</span>
+<span style="color:#069;">function</span> control(<em>dst</em>, <em>pcl</em>) {</strong></pre></code>
+				<textarea id="editor">// Function that computes the force field at position 'pos'
+// given list of obstacles 'obs' = [[[x, y], r], ...].
+function ff(pos, obs) {
+  // TODO: Implement
+  return math.normalize([1, 1]);
+}
+math.drawForceField(ff);
+
+// Function that computes the path from the robot
+// to the target using 'ff'.
+function plan(obs) {
+  // TODO: Implement
+  return [[50, 50], dst];
+}
+math.drawPath(plan);
+
+return [0, 0];</textarea>
+				<code><strong>}</strong></code>
+				<button id="tob64">ascii &rarr; base64</button> 
+				<button id="toascii">base64 &rarr; ascii</button>
+			</td>
+		</tr>
+	</table>
+
+	<script>
+		function context() { return $('#render')[0].getContext('2d'); }
+		function clear() { context().clearRect(0, 0, $('#render').width(), $('#render').height()); }
+
+		// obstacles = [[x, y, r], ...]
+		var obs = [
+			[[320, 60], 29],
+			[[235, 145], 38],
+			[[348, 390], 21],
+			[[149, 438], 24],
+			[[341, 284], 27],
+			[[266, 429], 34],
+			[[205, 270], 39]
+		];
+		var dst = [450, 450];
+		
+		function drawObs(obs) {
+			var ctx = context();
+			obs.forEach(function (o){
+				ctx.beginPath();
+				ctx.fillStyle = '#e56';
+				ctx.arc(o[0][0], o[0][1], o[1], 0, 2 * Math.PI);
+				ctx.fill();
+			});
+		}
+
+		function drawDst(dst) {
+			var ctx = context();
+			ctx.beginPath();
+			ctx.fillStyle = '#9e6';
+			ctx.rect(dst[0]-15, dst[1]-15, 30, 30);
+			ctx.fill();
+		}
+
+		function Robot() {
+			var x = 50;
+			var y = 50;
+			var dir = 0;
+
+			function draw(x, y, a) {
+				var ctx = context();
+				ctx.beginPath();
+				ctx.lineWidth = 1;
+				ctx.strokeStyle = '#000';
+				ctx.fillStyle = "#fe0";
+				ctx.arc(x, y, 15, 0, 2 * Math.PI);
+				ctx.fill();
+				ctx.moveTo(x, y);
+				ctx.lineTo(x+15*Math.cos(a), y-15*Math.sin(a));
+				ctx.stroke();
+			}
+
+			function crash() {
+				if (x < 15 || x > 485 || y < 15 || y > 485) return true;
+				for (var o of obs) {
+					if (math.distance([x,y], o[0]) < o[1] + 15) return true;
+				}
+				return false;
+			}
+
+			function sense() {
+				var result = [];
+				for (var d = dir - Math.PI/4; d < dir + Math.PI/4; d += 0.05) {
+					var dd = [Math.cos(d), -Math.sin(d)];
+					var t = 1000;
+					for (var o of obs) {
+						var m = math.subtract([x,y], o[0]); 
+						var b = math.dot(m, dd); 
+						var c = math.dot(m, m) - o[1] * o[1]; 
+
+						if (c > 0 && b > 0) continue
+						
+						var discr = b*b - c; 
+						if (discr < 0) continue; 
+
+						t = Math.min(t, -b - Math.sqrt(discr));
+					}
+					if (t == 1000) {
+						if (dd[0] > 0) t = Math.min(t, (500 - x) / dd[0]);
+						else t = Math.min(t, -x / dd[0]);
+
+						if (dd[1] > 0) t = Math.min(t, (500 - y) / dd[1]);
+						else t = Math.min(t, -y / dd[1]);
+					}
+					result.push([x + t * dd[0], y + t * dd[1]]);
+				}
+				return result;
+			}
+
+			this.sim = function(filter) {
+				clear();
+				drawObs(obs);
+				drawDst(dst);
+				draw(x, y, dir);
+
+				if (on) {
+					var dt = 1/30;
+					var v = 30;
+
+					var pcl = sense();
+					if ($('#pcl')[0].checked) {
+						var ctx = context();
+						ctx.beginPath();
+						ctx.lineWidth = 1;
+						ctx.strokeStyle = '#fa9';
+						for (var p of pcl) {
+							ctx.moveTo(x, y);
+							ctx.lineTo(p[0], p[1]);
+						}
+						ctx.stroke();
+					}
+					var delta = filter.pred(dst, pcl);
+					dir += Math.sign(delta[0]) * Math.PI/4 * dt;
+					x += Math.sign(delta[1]) * Math.cos(dir) * v * dt;
+					y -= Math.sign(delta[1]) * Math.sin(dir) * v * dt;
+
+					if (crash()) {
+						window.alert('You crashed!');
+					} else {
+						tid = setTimeout(function(){ bot.sim(filter); }, $('#slomo')[0].checked * 1/dt);
+					}
+				}
+			};
+		}
+
+		var on = false;
+		var bot = {};
+		var tid = -1;
+		function reset() {
+			window.clearTimeout(tid);
+			on = false;
+			bot = new Robot();
+			bot.sim();
+		}
+
+		 $(document).ready(function(){
+			reset();
+			if (typeof Cookies.get('editorState', {path: '/hy475/assign6/'}) !== 'undefined'){
+				$('#editor').val(Cookies.get('editorState', {path: '/hy475/assign6/'}));
+			}
+
+			$('#play').click(function(e){
+				on = !on;
+
+				if (on) {
+					$(this).html('&#x23F9;');
+					eval('function filter(){ this.pred = function(dst, pcl) {'+ $('#editor').val() +'}; }');
+					bot.sim(new filter());
+				} else {
+					$(this).html('&#x25B6;');
+					reset();
+				}
+			});
+
+			$('#editor').on('change keyup paste', function(){
+				Cookies.set('editorState', $(this).val(), {expires: 30, path: '/hy475/assign6/'});
+			});
+
+			$('#tob64').on('click', function(){
+				$('#editor').val(btoa($('#editor').val()));
+			});
+			$('#toascii').on('click', function(){
+				$('#editor').val(atob($('#editor').val()));
+			});
+		});
+	</script>
+</body>
+</html>
