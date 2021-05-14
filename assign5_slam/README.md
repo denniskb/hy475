@@ -13,7 +13,7 @@ Now we want to **s**imultaneously **l**ocalize our robot **a**nd **m**ap our env
 
 ## Step 1: DMF
 
-We start with last assignment's DMF implementation. Head over to our [interactive robot simulator](https://bautembach.de/hy475/assign5/) which is pre-loaded with the following template:
+We start with last assignment's DMF implementation. Head over to our [interactive robot simulator](http://denniskb.github.io/hy475/assign5/) which is pre-loaded with the following template:
 
 ```javascript
 if (typeof this.grid === 'undefined') {
