@@ -17,7 +17,7 @@ They come with some dis-advantages as well:
 2. Even if they do not get stuck, the paths they produce are far from the shortest possible.
 
 ## Part 1: Path Planning
-Potential fields are very easy to understand: The target exerts a *map-wide* force attracting our robot. Each obstacle exerts a *local* force repelling our robot so it doesn't crash. The force is local because we don't want an obstacle a kilometer away influencing our path. This area of influence around an obstacle is known as the obstacle's "spread" *s*. The final force at any point in the field is then simply the sum of all these individual forces, and gives us the direction the robot should move in.
+Potential fields are very easy to understand: The target exerts a *map-wide* force attracting our robot. Each obstacle exerts a *local* force repelling our robot so it doesn't crash. The force is local because we don't want an obstacle a kilometer away influencing our path. This area of influence around an obstacle is known as the obstacle's "spread" *s*. The final force at any point in the field is then simply the sum of all these individual forces, and is equal to the direction the robot should move in.
 
 Below we see the force field only due to the target. It acts on the entire map:
 
@@ -35,14 +35,14 @@ Finally, the combined force of the target and the 2nd obstacle is simply their s
 
 ![force field](field_1obs.png)
 
-And for completeness here's the field taking all obstacles into account:
+And for completeness here's the field taking into account all obstacles:
 
 ![force field](field_allobs.png)
 
 Head over to our [interactive robot simulator](http://denniskb.github.io/hy475/assign6/) which is pre-loaded with the following template:
 
 ```javascript
-// Function that computes the force field at position 'pos'
+// Function that computes the force field at position 'pos' = [x, y]
 // given list of obstacles 'obs' = [[[x, y], r], ...].
 function ff(pos, obs) {
   // TODO: Implement
@@ -67,7 +67,7 @@ which produces the following output:
 
 The field blindly points in a single direction and our path is a straight line disregarding all obstacles. Your job is to implement functions `ff()` and `plan()` in order to produce the image at the beginning of this readme.
 
-- `ff(pos, obs)` is a function that accepts a 2D position `pos = [x, y]`,a list of obstacles `obs`, and from these calculates the *direction* of the force field *at location* `pos`. `obs` is a list of obstacles with format `[[[x, y], r], ...]` where each obstacle is a position-radius pair.
+- `ff(pos, obs)` is a function that accepts a 2D position `pos = [x, y]`, a list of obstacles `obs`, and from these calculates the *direction* of the force field *at location* `pos`. `obs` has the format `[[[x, y], r], ...]` where each obstacle is a position-radius pair.
 - Obstacles only consist of a position and a radius. *You* have to compute an appropriate spread *s* per obstacle. This could be a simple constant margin on top of the radius or something more involved. The repelling force should smoothly drop off from 1 at the obstacle's boundary to 0 at the edge of its spread.
 - `dst` is the 2D location `[x, y]` of the green target.
 - `ff()` is supposed to return a direction, i.e. a 2D vector with length 1.
