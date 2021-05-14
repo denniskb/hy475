@@ -27,7 +27,7 @@ Next we see the field only due to the 2nd obstacle from the top, first unlimited
 
 ![force field](field_obsinf.png)
 
-Then with its spread set to *s*=50 px:
+Then with its spread set to *s*=50 px, notice how the field smoothly drops of as it gets to the edge of the spread:
 
 ![force field](field_obs.png)
 
